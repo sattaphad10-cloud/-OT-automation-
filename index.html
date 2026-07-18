@@ -315,6 +315,32 @@
             color: #333;
         }
 
+        .add-shift-btn {
+            display: block;
+            margin: 3px auto 0;
+            width: 22px;
+            height: 18px;
+            line-height: 16px;
+            font-size: 11px;
+            padding: 0;
+            border: 1px solid #4CAF50;
+            background: #eaffea;
+            color: #2e7d32;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .add-shift-btn:active { background: #cdf5cd; }
+
+        .clear-day-btn {
+            border-color: #e57373;
+            background: #ffecec;
+            color: #c0392b;
+            margin-top: 3px;
+        }
+
+        .clear-day-btn:active { background: #ffd6d6; }
+
         .autocomplete-box {
             position: absolute;
             z-index: 9999;
@@ -619,6 +645,7 @@
     </table>
 
     <!-- โครงสร้างตารางหลัก -->
+    <div style="font-size:11px; color:#666; text-align:center; margin-bottom:4px;">➕ เพิ่มช่วงเวลาเสริมโดยไม่ลบของเดิม (รับเวรคนอื่น/ยกเวร เพิ่มได้ไม่จำกัด) • 🗑️ ล้างข้อมูลทั้งวันเพื่อลงใหม่</div>
     <div class="mobile-scroll-hint">👉 เลื่อนซ้าย-ขวาเพื่อดูข้อมูลตารางทั้งหมด</div>
     <div class="days-table-wrapper">
     <table class="main-table">
@@ -996,7 +1023,7 @@
             const tr = document.createElement('tr');
             tr.id = `row-${day}`;
             tr.innerHTML = `
-                <td>${day}</td>
+                <td>${day}<button type="button" class="add-shift-btn" onclick="promptAddShift(${day})" title="เพิ่มอีกช่วงเวลา/รหัสลา โดยไม่ลบของเดิม">➕</button><button type="button" class="add-shift-btn clear-day-btn" onclick="confirmClearDay(${day})" title="ล้างข้อมูลเวลา/หมายเหตุทั้งหมดของวันนี้">🗑️</button></td>
                 <td><input type="text" class="cell-input" id="duty-sh-${day}" oninput="handleCellInput(${day}, 'duty-sh-${day}')" onchange="smartCellInput(${day}, 'duty-sh-${day}')"></td>
                 <td><input type="text" class="cell-input" id="duty-ba-${day}" oninput="handleCellInput(${day}, 'duty-ba-${day}')" onchange="smartCellInput(${day}, 'duty-ba-${day}')"></td>
                 <td><input type="text" class="cell-input" id="duty-dk-${day}" oninput="handleCellInput(${day}, 'duty-dk-${day}')" onchange="smartCellInput(${day}, 'duty-dk-${day}')"></td>
@@ -1360,6 +1387,42 @@
         if (segments.length === 0) return false;
         segments.forEach(seg => placeSegment(day, seg));
         return true;
+    }
+
+    // 🗑️ ล้างข้อมูลเวลา/หมายเหตุทั้งหมดของวันนั้นในคลิกเดียว (ใช้เมื่อต้องการลงข้อมูลใหม่ทั้งวันแบบสะอาด)
+    // ไม่ลบชื่อผู้ทำงาน เพราะปกติเป็นชื่อเจ้าของฟอร์มที่ไม่ควรต้องพิมพ์ใหม่ทุกครั้ง
+    function confirmClearDay(day) {
+        const ok = confirm(
+            `ต้องการล้างข้อมูลเวลา Duty/OT และหมายเหตุทั้งหมดของวันที่ ${day} หรือไม่?\n` +
+            `(ชื่อผู้ทำงานจะไม่ถูกลบ)\n\n` +
+            `การกระทำนี้ยกเลิกไม่ได้ (ยกเว้นจะพิมพ์ข้อมูลกลับเข้าไปเอง)`
+        );
+        if (!ok) return;
+        clearDayTimeCells(day);
+        manualCalculateRow(day);
+    }
+
+    // ➕ เพิ่มช่วงเวลา/รหัสลาเพิ่มเติมให้วันนั้นๆ โดย "ไม่แตะ/ไม่ลบ" ข้อมูลเดิมในวันเดียวกันเลย
+    // แก้ปัญหา: พิมพ์ตรงในช่องที่มีข้อมูลอยู่แล้วโดยไม่ใส่จุลภาคเอง จะทำให้ข้อมูลเดิมถูกเขียนทับหายไป
+    // ปุ่มนี้จึงเปิดช่องทางที่ปลอดภัย 100% สำหรับกรณีต้องรับเวรคนอื่น/ยกเวรเพิ่มเติมในวันที่ลงข้อมูลไปแล้ว ไม่จำกัดจำนวนครั้ง
+    function promptAddShift(day) {
+        const input = prompt(
+            `เพิ่มช่วงเวลา/รหัสลาเพิ่มเติมสำหรับวันที่ ${day}\n` +
+            `(ของเดิมในวันนี้จะไม่ถูกลบ เพิ่มได้ไม่จำกัดจำนวนครั้ง)\n\n` +
+            `ตัวอย่าง: 12-14  หรือ  13-20  หรือ  V\n` +
+            `ใส่ได้หลายช่วงพร้อมกัน คั่นด้วยจุลภาค (,)`,
+            ''
+        );
+        if (input === null) return; // ผู้ใช้กดยกเลิก ไม่ทำอะไรเลย
+        const trimmed = input.trim();
+        if (!trimmed) return;
+
+        // จำค่าที่พิมพ์ไว้เป็นคำแนะนำอัตโนมัติด้วยเช่นกัน (เหมือนช่องพิมพ์ปกติ)
+        addSuggestion(SUGG_KEYS.time, 'timeSuggestions', trimmed);
+
+        // กระจายลงช่องตามกฎเดิมทั้งหมด (กฎเหล็กเวรดึก, มาตรฐาน sh/ba/dk ฯลฯ) โดยไม่เคลียร์ช่องเดิมก่อนเด็ดขาด
+        distributeDaySegments(day, trimmed);
+        manualCalculateRow(day);
     }
 
     // ทำงานเมื่อผู้ใช้พิมพ์เสร็จแล้วออกจากช่อง (onchange) — ตรวจจับรูปแบบหลายช่วงเวลา หรือกฎเหล็กเวรดึก แล้วเด้งจัดช่องให้ใหม่
