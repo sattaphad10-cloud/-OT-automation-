@@ -1,0 +1,2925 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="format-detection" content="telephone=no">
+    <title>ระบบใบอนุมัติเบิกค่าตอบแทนการอยู่เวร (เวอร์ชันไดนามิกสมบูรณ์แบบ)</title>
+    <style>
+        :root {
+            --primary-color: #1a4f7c;
+            --border-color: #000000;
+        }
+
+        html {
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Sarabun', Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f0f3f5;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .paper-container {
+            width: 210mm;
+            min-height: 297mm;
+            background: #ffffff;
+            margin: 0 auto;
+            padding: 20mm 15mm;
+            box-shadow: 0 0 15px rgba(0,0,0,0.15);
+            position: relative;
+        }
+
+        /* หัวใบงาน */
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        
+        .header-table td {
+            border: none !important;
+            padding: 4px;
+            font-size: 15px;
+        }
+
+        .title-main {
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 2px;
+        }
+
+        .title-sub {
+            text-align: center;
+            font-size: 16px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        /* แผงควบคุมสไตล์ Google Calendar & Dynamic Setup */
+        .control-panel {
+            background: #f8f9fa;
+            border: 2px solid var(--primary-color);
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .panel-section-title {
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 12px;
+            font-size: 14px;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 15px;
+            min-width: 0;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            font-size: 13px;
+            min-width: 0; /* กัน grid item ไม่ยอมหดตามความกว้างจริง เพราะ select/input มีข้อความยาว (สาเหตุหลักที่ทำให้เพจล้นจอมือถือ) */
+        }
+
+        .control-group label {
+            font-weight: bold;
+            margin-bottom: 4px;
+            color: #333;
+        }
+
+        .control-group input, .control-group select {
+            padding: 8px;
+            border: 1px solid #aaa;
+            border-radius: 4px;
+            font-size: 13px;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+        }
+
+        /* ส่วนเลือกวันแบบปฏิทิน (Calendar Picker Mode) */
+        .calendar-picker-zone {
+            background: #fff;
+            border: 1px solid #ccd1d9;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+
+        .days-checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+            margin-top: 8px;
+            margin-bottom: 12px;
+        }
+
+        .day-checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            padding: 4px;
+            border: 1px solid #e6e9ed;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #fbfcfd;
+        }
+
+        .day-checkbox-label:hover {
+            background: #f1f2f6;
+        }
+
+        .day-checkbox-label.selected {
+            background: #e1f5fe;
+            border-color: #0288d1;
+        }
+
+        .btn-action {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-action:hover {
+            background: #12385a;
+        }
+
+        .btn-secondary {
+            background: #656d78;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            font-size: 11px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        /* ตารางหลัก */
+        .main-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .main-table th, .main-table td {
+            border: 1px solid var(--border-color);
+            padding: 4px 2px;
+            text-align: center;
+            height: 26px;
+        }
+
+        .main-table th {
+            font-weight: bold;
+            background-color: #f2f2f2;
+        }
+
+        .sub-column-title {
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .cell-input {
+            width: 95%;
+            border: none;
+            text-align: center;
+            font-size: 13px;
+            background: transparent;
+            font-weight: 500;
+        }
+        
+        .cell-input:focus {
+            outline: none;
+            background: #e8f0fe;
+        }
+
+        .editable-label {
+            border: none;
+            border-bottom: 1px dotted #000;
+            font-size: 15px;
+            padding: 2px;
+            background: transparent;
+        }
+        
+        .editable-label:focus {
+            outline: none;
+            background: #f0f4f8;
+            border-bottom: 1px solid var(--primary-color);
+        }
+
+        .auto-calculated-cell {
+            font-weight: bold;
+            color: #000;
+        }
+
+        /* ท้ายใบงาน */
+        .footer-section {
+            margin-top: 25px;
+            font-size: 14px;
+            width: 100%;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .signature-box {
+            margin-top: 25px;
+        }
+
+        .signature-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 35px;
+        }
+
+        .signature-line {
+            display: inline-block;
+            width: 180px;
+            border-bottom: 1px dotted #000;
+            text-align: center;
+        }
+
+        .amount-highlight {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 18px;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        .footer-rate-input {
+            width: 60px;
+            padding: 2px 4px;
+            border: 1px solid #aaa;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        /* สไตล์ช่องกล่องรับข้อความ 30 วันที่เพิ่มเข้ามา */
+        .bulk-textbox-zone {
+            background: #fff;
+            border: 1px solid #ccd1d9;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 10px;
+            display: flex;
+            gap: 15px;
+        }
+        .bulk-textarea {
+            flex: 1;
+            height: 120px;
+            padding: 8px;
+            border: 1px solid #aaa;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 13px;
+            resize: none;
+        }
+        .bulk-guide {
+            width: 250px;
+            background: #f1f2f6;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        .add-shift-btn {
+            display: block;
+            margin: 3px auto 0;
+            width: 22px;
+            height: 18px;
+            line-height: 16px;
+            font-size: 11px;
+            padding: 0;
+            border: 1px solid #4CAF50;
+            background: #eaffea;
+            color: #2e7d32;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .add-shift-btn:active { background: #cdf5cd; }
+
+        .clear-day-btn {
+            border-color: #e57373;
+            background: #ffecec;
+            color: #c0392b;
+            margin-top: 3px;
+        }
+
+        .clear-day-btn:active { background: #ffd6d6; }
+
+        .cal-day-btn {
+            border-color: #4285F4;
+            background: #eaf1ff;
+            color: #1a56c4;
+            margin-top: 3px;
+        }
+
+        .cal-day-btn:active { background: #cfe0ff; }
+
+        body.hide-amount-active #textFinalAmount,
+        body.hide-amount-active .amount-highlight,
+        body.hide-amount-active #printAmountForMoney {
+            visibility: hidden;
+        }
+
+        body.hide-sig-active #sigNameWorker,
+        body.hide-sig-active #printSigName {
+            visibility: hidden;
+        }
+
+        #printOnlyForm {
+            display: none;
+            position: relative;
+            width: 210mm;
+            min-height: 297mm;
+            --print-font-size: 12px;
+            --print-row-h: auto;
+        }
+
+        .print-header-table, .print-main-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: var(--print-font-size);
+        }
+
+        .print-header-table td {
+            border: 1px solid #000;
+            padding: 4px 6px;
+        }
+
+        .print-main-table th, .print-main-table td {
+            border: 1px solid #000;
+            padding: 2px 3px;
+            text-align: center;
+            height: 20px;
+            font-size: var(--print-font-size);
+        }
+
+        body.calib-row-h-active .print-main-table tbody td,
+        body.calib-row-h-active .print-main-table tbody th {
+            height: var(--print-row-h) !important;
+        }
+
+        .print-fill {
+            display: inline-block;
+            min-width: 80px;
+            border-bottom: 1px dotted #000;
+            padding: 0 4px;
+            font-weight: bold;
+        }
+
+        .print-fill-inline {
+            display: inline-block;
+            min-width: 40px;
+            border-bottom: 1px dotted #000;
+            padding: 0 3px;
+            font-weight: bold;
+        }
+
+        .print-money-section { font-size: var(--print-font-size); margin: 10px 0; line-height: 2; }
+        .print-signature-section { font-size: var(--print-font-size); margin-top: 20px; line-height: 2.2; }
+
+        #printOnlyForm .calib-field:not([data-calib-id="title"]) { font-size: var(--print-font-size); }
+        #printOnlyForm .calib-field { margin-bottom: 5px; }
+        #printOnlyForm [data-calib-id="title"] { margin-bottom: 8px; }
+
+        /* ================= ระบบจัดตำแหน่งอิสระ (Calibration) ================= */
+        body.preview-mode .paper-container { padding: 0 !important; }
+
+        body.calib-mode-active .calib-field {
+            position: absolute;
+            outline: 1px dashed rgba(0,120,255,0.6);
+            outline-offset: 1px;
+        }
+        body.calib-mode-active .calib-field:hover {
+            outline: 1px solid #ff5722;
+            background: rgba(255,235,59,0.15);
+        }
+
+        #calibPanel {
+            display: none;
+            position: fixed;
+            top: 0; right: 0;
+            width: 300px;
+            max-width: 92vw;
+            height: 100vh;
+            overflow-y: auto;
+            background: #1c2a38;
+            color: #fff;
+            z-index: 900;
+            padding: 12px;
+            box-shadow: -3px 0 10px rgba(0,0,0,0.3);
+            font-size: 12px;
+        }
+        body.calib-mode-active #calibPanel { display: block; }
+        body.calib-mode-active .paper-container { margin-right: 300px; }
+
+        #calibPanel h4 { margin: 10px 0 4px; font-size: 13px; color: #7ec8ff; border-top: 1px solid #34495e; padding-top: 8px; }
+        #calibPanel .calib-row { border: 1px solid #34495e; border-radius: 4px; padding: 6px; margin-bottom: 6px; background: #24384a; }
+        #calibPanel .calib-row-title { display:flex; align-items:center; justify-content:space-between; font-weight:bold; margin-bottom:4px; }
+        #calibPanel .calib-inputs { display:grid; grid-template-columns: repeat(4, 1fr); gap:4px; }
+        #calibPanel .calib-inputs label { font-size:10px; color:#bcd; display:block; }
+        #calibPanel .calib-inputs input { width:100%; font-size:11px; padding:3px; border-radius:3px; border:1px solid #555; }
+        #calibPanel .calib-reset-btn { font-size:10px; background:#556; border:none; color:#fff; border-radius:3px; padding:2px 6px; cursor:pointer; }
+        #calibPanel .calib-global-row { display:flex; align-items:center; gap:6px; margin-bottom:8px; }
+        #calibPanel .calib-global-row input[type=number] { width:70px; padding:3px; }
+
+        @media print {
+            #calibPanel { display: none !important; }
+            body.calib-mode-active .calib-field { outline: none !important; background: none !important; }
+        }
+
+        body.preview-mode .control-panel { display: none; }
+        body.preview-mode #liveFormOnScreen { display: none; }
+        body.preview-mode #printOnlyForm { display: block; }
+        body.preview-mode .paper-container { box-shadow: none; }
+
+        body.preview-mode .print-preview-toolbar { display: flex; }
+        .print-preview-toolbar { display: none; }
+
+        /* โหมดพิมพ์เฉพาะตัวอักษร (ไม่มีเส้นกรอบ) สำหรับพิมพ์ทับฟอร์มเปล่าที่มีอยู่แล้ว */
+        body.print-text-only #printOnlyForm table,
+        body.print-text-only #printOnlyForm th,
+        body.print-text-only #printOnlyForm td {
+            border-color: transparent !important;
+            background: transparent !important;
+        }
+        body.print-text-only #printOnlyForm .print-fill,
+        body.print-text-only #printOnlyForm .print-fill-inline {
+            border-bottom-color: transparent !important;
+        }
+
+        @media print {
+            .control-panel { display: none; }
+            #liveFormOnScreen { display: none; }
+            #printOnlyForm { display: block !important; }
+            .print-preview-toolbar { display: none !important; }
+            @page { size: A4; margin: 0; }
+        }
+
+        .autocomplete-box {
+            position: absolute;
+            z-index: 9999;
+            background: #ffffff;
+            border: 1px solid #aaa;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+            max-height: 190px;
+            overflow-y: auto;
+            font-size: 13px;
+            display: none;
+        }
+
+        .autocomplete-item {
+            padding: 9px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            color: #222;
+        }
+
+        .autocomplete-item:last-child { border-bottom: none; }
+
+        .autocomplete-item:hover,
+        .autocomplete-item.active-hover {
+            background: #e8f0fe;
+        }
+
+        .suggest-chip-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+            max-height: 130px;
+            overflow-y: auto;
+            padding: 8px;
+            background: #fff;
+            border: 1px solid #ccd1d9;
+            border-radius: 6px;
+        }
+
+        .suggest-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #eef4f8;
+            border: 1px solid #cfd9e3;
+            border-radius: 14px;
+            padding: 3px 4px 3px 10px;
+            font-size: 12px;
+        }
+
+        .suggest-chip-remove {
+            border: none;
+            background: transparent;
+            color: #c0392b;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+            line-height: 1;
+            padding: 2px 6px;
+        }
+
+        .days-table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .mobile-scroll-hint { display: none; }
+
+        /* ============================================================
+           📱 ปรับหน้าจอให้เหมาะกับมือถือโดยอัตโนมัติ
+           ============================================================ */
+        @media screen and (max-width: 768px) {
+            body { padding: 8px; }
+
+            .mobile-scroll-hint {
+                display: block;
+                font-size: 11px;
+                color: #666;
+                margin-bottom: 6px;
+                text-align: center;
+            }
+
+            .paper-container {
+                width: 100%;
+                min-height: auto;
+                padding: 14px 10px;
+                box-shadow: none;
+            }
+
+            .title-main { font-size: 16px; }
+            .title-sub { font-size: 13px; margin-bottom: 14px; }
+
+            .control-panel { padding: 12px; }
+            .panel-section-title { font-size: 13px; }
+            .control-grid { grid-template-columns: 1fr; }
+
+            /* จัดฟอร์มชื่อ/รหัสพนักงาน/ตำแหน่งให้เรียงเป็นแถวเดียวสวยงาม ไม่หลุดกรอบ */
+            .header-table, .header-table tbody, .header-table tr, .header-table td {
+                display: block;
+                width: 100% !important;
+            }
+            .header-table td {
+                padding: 6px 2px;
+                border-bottom: 1px dashed #eee;
+            }
+            .header-table td:last-child { border-bottom: none; }
+            .editable-label { width: 100% !important; margin-top: 3px; }
+
+            /* ตาราง 31 วันกว้างเกินจอมือถือแน่นอน (มีถึง 12 คอลัมน์) ให้เลื่อนซ้าย-ขวาแทนการบีบจนตัวเลขอ่านไม่ออก */
+            .main-table {
+                min-width: 760px;
+                font-size: 12px;
+            }
+            .cell-input { font-size: 13px; }
+
+            .footer-grid { grid-template-columns: 1fr; }
+            .signature-row { flex-direction: column; gap: 14px; }
+            .signature-line { width: 140px; }
+
+            .bulk-textbox-zone { flex-direction: column; }
+            .bulk-textarea { height: 140px; }
+
+            .days-checkbox-grid { grid-template-columns: repeat(4, 1fr); }
+
+            .calendar-picker-zone > div[style*="display: flex"] {
+                flex-direction: column;
+                align-items: stretch !important;
+                gap: 10px;
+            }
+
+            .btn-action, .btn-secondary { width: 100%; }
+        }
+
+        @media print {
+            body { background: none; padding: 0; }
+            .control-panel { display: none; }
+            .paper-container { box-shadow: none; padding: 0; width: 100%; }
+            .editable-label { border-bottom: 1px dotted #000 !important; }
+            input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+            input[type=number] { -moz-appearance: textfield; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="paper-container">
+    
+    <!-- แผงควบคุมอัจฉริยะแบบไดนามิกและปฏิทินล็อกวัน (ไม่แสดงตอนพิมพ์) -->
+    <div class="control-panel">
+        <div class="panel-section-title">👤 1. ตั้งค่าโปรไฟล์ผู้เบิกและโหมดการคำนวณ</div>
+        <div class="control-grid">
+            <div class="control-group">
+                <label>ตำแหน่ง/โหมดการคิดเงิน</label>
+                <select id="posSelect" onchange="switchMode()">
+                    <option value="pharmacist">เภสัชกร (เวรปกติเคลียร์ชั่วโมงเดือน, แยกเรท OT เช้า/ดึก)</option>
+                    <option value="pharmacist_parttime">เภสัชกรพาร์ทไทม์ (คิดเฉพาะ OT เท่านั้น ไม่มีดิวตี้)</option>
+                    <option value="assistant">ผู้ช่วยเภสัชกร (หักเวลาพักตามเกณฑ์, เรท OT ราคาเดียว + ดึกรายคืน)</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>งวดประจำเดือน / ปี</label>
+                <div style="display:flex; gap:6px;">
+                    <select id="inputMonth" onchange="syncProfileInfo()" style="flex:1.3;">
+                        <option value="1">มกราคม</option>
+                        <option value="2">กุมภาพันธ์</option>
+                        <option value="3">มีนาคม</option>
+                        <option value="4">เมษายน</option>
+                        <option value="5">พฤษภาคม</option>
+                        <option value="6">มิถุนายน</option>
+                        <option value="7">กรกฎาคม</option>
+                        <option value="8">สิงหาคม</option>
+                        <option value="9">กันยายน</option>
+                        <option value="10">ตุลาคม</option>
+                        <option value="11">พฤศจิกายน</option>
+                        <option value="12">ธันวาคม</option>
+                    </select>
+                    <input type="number" id="inputYearCE" placeholder="ค.ศ." style="flex:1;" onchange="syncProfileInfo()">
+                </div>
+            </div>
+            <div class="control-group">
+                <label>ชื่อ-นามสกุล</label>
+                <input type="text" id="inputName" value="วิทวัส สกุลมา" oninput="syncProfileInfo(); scheduleSuggestionSave('inputName', SUGG_KEYS.profileName, 'profileNameSuggestions');" onchange="commitSuggestionSave('inputName', SUGG_KEYS.profileName, 'profileNameSuggestions')">
+            </div>
+            <div class="control-group">
+                <label>รหัสพนักงาน</label>
+                <input type="text" id="inputEmpId" value="261124" oninput="syncProfileInfo(); scheduleSuggestionSave('inputEmpId', SUGG_KEYS.profileEmpId, 'profileEmpIdSuggestions');" onchange="commitSuggestionSave('inputEmpId', SUGG_KEYS.profileEmpId, 'profileEmpIdSuggestions')">
+            </div>
+            <div class="control-group">
+                <label>แผนก / ฝ่าย</label>
+                <input type="text" id="inputDept" value="เภสัชกรรม" oninput="syncProfileInfo(); scheduleSuggestionSave('inputDept', SUGG_KEYS.profileDept, 'profileDeptSuggestions');" onchange="commitSuggestionSave('inputDept', SUGG_KEYS.profileDept, 'profileDeptSuggestions')">
+            </div>
+        </div>
+
+        <!--เพิ่มฟังก์ชันกล่องรับข้อความ 30 วัน ผสมรูปแบบตัวคั่นได้เต็มที่-->
+        <div class="panel-section-title">📥 2. เพิ่มเติม: นำเข้าข้อมูลตารางเวรรวม 30 วัน (คัดลอกข้อความมาวางได้เลย)</div>
+        <div class="bulk-textbox-zone">
+            <textarea id="bulkInput" class="bulk-textarea" placeholder="วางข้อความตารางเวรที่นี่... เช่น:&#10;วันที่ 1 8-20&#10;วันที่ 2: 9-16&#10;3=17-20&#10;4. OFF&#10;5 -> P8&#10;6: 6+P2"></textarea>
+            <div class="bulk-guide">
+                <b>💡 คำแนะนำรูปแบบที่รองรับ:</b><br>
+                • ตัวคั่น: เคาะวรรค, จุด (.), เท่ากับ (=), ลูกศร (->)<br>
+                • สัญลักษณ์วันลาเต็มวัน (8 ชม.): V, S, P หรือ P8<br>
+                • สัญลักษณ์ลากิจบางส่วน: ควบเครื่องหมายบวก เช่น 6+P2 หรือ 4+P4<br>
+                • วันเดียวกันมีได้สูงสุด 3 ช่วงเวลา คั่นด้วยจุลภาค (,) เช่น 8-16,20-24<br>
+                • 🔒 กฎเหล็กเวรดึก: พิมพ์ 20-24 จะเข้าช่อง OT ทันที และ 0-8 จะเข้าช่อง Duty เสมอ
+                <button type="button" class="btn-action" style="margin-top: 10px; padding: 6px; font-size: 12px;" onclick="processBulkTextImport()">🚀 นำเข้าลงตารางด่วน</button>
+            </div>
+        </div>
+
+        <div class="panel-section-title" style="margin-top: 15px;">📅 3. ระบบลงตารางเวรด่วนแบบล็อกวัน (สไตล์ Google Calendar)</div>
+        <div class="calendar-picker-zone">
+            <div style="font-size: 12px; color: #555; display: flex; justify-content: space-between; align-items: center;">
+                <span>เลือกวันที่ที่ต้องการลงเวรนี้ (สามารถคลิกเลือกซ้ำหลายๆ วันได้เหมือนการเลือกวันทำงานในระบบปฏิทิน)</span>
+                <div>
+                    <button type="button" class="btn-secondary" onclick="selectAllDays(true)">เลือกทั้งหมด</button>
+                    <button type="button" class="btn-secondary" onclick="selectAllDays(false)">ล้างทั้งหมด</button>
+                </div>
+            </div>
+            
+            <!-- ตารางจำลองปฏิทินให้จิ้มเลือกวันได้ง่ายๆ -->
+            <div class="days-checkbox-grid" id="checkboxGrid">
+                <!-- เจนผ่านสคริปต์ 1-31 วัน -->
+            </div>
+
+            <div style="display: flex; gap: 15px; align-items: flex-end; background: #eef4f8; padding: 10px; border-radius: 6px;">
+                <div class="control-group" style="width: 180px;">
+                    <label>รูปแบบช่วงเวลาที่ทำจริง</label>
+                    <input type="text" id="quickTimeInput" value="8-20" placeholder="เช่น 8-16,20-24 หรือ 8-20, 20-8">
+                </div>
+                <div style="flex: 1; font-size: 12px; color: #444;">
+                    * ระบบจะนำช่วงเวลานี้ไปใส่ในวันที่คุณเลือกไว้ พร้อม **"แยกเวลาส่วนที่เกินออกจากเวลาดิวตี้เพื่อไปคิดเป็น OT ให้อัตโนมัติ"** ตามกฎเหล็กเวรดึก (20-24 = OT เสมอ, 0-8 = Duty เสมอ) รองรับสูงสุด 3 ช่วงเวลาต่อวัน คั่นด้วยจุลภาค (,)
+                </div>
+                <div>
+                    <button type="button" class="btn-action" onclick="applyCalendarBulkFill()">ลงข้อมูลในวันทึ่เลือกทั้งหมด</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="panel-section-title" style="margin-top:15px;">💰 4. ตั้งค่าราคาและอัตราค่าตอบแทน (ปรับเปลี่ยนได้ตลอดเวลา)</div>
+        <div class="control-grid" id="rateControlGrid">
+            <!-- ฟิลด์เรทราคาจะปรับเปลี่ยนตามโหมดงานที่เลือกโดยอัตโนมัติ -->
+        </div>
+
+        <div class="panel-section-title" style="margin-top:15px;">🎯 5. ปรับเป้าหมายชั่วโมง Duty และรีคำนวณเงิน OT ส่วนเกิน</div>
+        <div class="control-grid" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="control-group">
+                <label>เป้าหมายชั่วโมง Duty ทั้งเดือน (ชม.)</label>
+                <input type="number" id="dutyTargetHours" placeholder="เช่น 170 (เว้นว่าง = ไม่ปรับ)" oninput="calculateGrandTotals()">
+            </div>
+            <div style="grid-column: span 2; font-size: 12px; color: #444; display:flex; align-items:center;">
+                * หากชั่วโมง Duty รวมสะสมเกินเป้าหมายที่ตั้งไว้ ระบบจะหักชั่วโมงส่วนเกินออกจากยอด Duty โดยอัตโนมัติ แล้วนำส่วนต่างนั้นไปแปลงเป็นเงิน OT เพิ่มเติมให้ทันที (เว้นว่างหรือใส่ 0 = ปิดการทำงานนี้)
+            </div>
+        </div>
+
+        <div class="panel-section-title" style="margin-top:15px;">📤 6. คัดลอกสรุปส่งไลน์ / บันทึกและเรียกคืนข้อมูล</div>
+        <div style="font-size:12px; color:#2e7d32; margin-bottom:8px;" id="autosaveIndicator">💾 ระบบบันทึกอัตโนมัติพร้อมทำงาน (จะบันทึกให้เองทุกครั้งที่แก้ไขข้อมูล)</div>
+        <div class="control-grid" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="control-group">
+                <label>คัดลอกสรุปยอด (ส่งไลน์เป็นหลักฐาน)</label>
+                <button type="button" class="btn-action" id="btnCopyLine" onclick="copyLineSummary()">📋 คัดลอกสรุปส่งไลน์</button>
+            </div>
+            <div class="control-group">
+                <label>บันทึกข้อมูลเดือนนี้เก็บไว้ (.json)</label>
+                <button type="button" class="btn-action" onclick="exportDataToFile()">💾 Export ข้อมูล</button>
+            </div>
+            <div class="control-group">
+                <label>เรียกคืนข้อมูลที่เคยบันทึกไว้ (.json)</label>
+                <button type="button" class="btn-secondary" style="width:100%; padding:8px;" onclick="document.getElementById('importFileInput').click()">📂 Import ข้อมูล</button>
+                <input type="file" id="importFileInput" accept="application/json,.json" style="display:none;" onchange="importDataFromFile(event)">
+            </div>
+            <div style="grid-column: 1 / -1; font-size: 12px; color: #444;">
+                * ระบบจะ <strong>บันทึกอัตโนมัติ</strong> ไว้ในเครื่องนี้ตลอดเวลาที่แก้ไข ป้องกันข้อมูลหายหากปิดแอป/หลุดออกจากหน้าโดยไม่ตั้งใจ — เปิดหน้านี้ขึ้นมาใหม่ครั้งถัดไประบบจะถามว่าต้องการเรียกคืนหรือไม่ทันที<br>
+                * ส่วนปุ่ม <strong>Export</strong> ใช้สำหรับบันทึกเป็นไฟล์ถาวรเก็บไว้ย้อนดู หรือย้ายไปเปิดต่อในเครื่องอื่นได้ (Import ไฟล์เดิมกลับเข้ามาจะเขียนทับข้อมูลในตารางปัจจุบันทั้งหมด)
+            </div>
+        </div>
+
+        <div class="panel-section-title" style="margin-top:15px;">🧠 7. จัดการคลังคำแนะนำอัตโนมัติ (เพิ่ม/ลบล่วงหน้าได้ ไม่ต้องรอพิมพ์ในตารางก่อน)</div>
+        <div class="control-grid" style="grid-template-columns: 1fr 1fr auto;">
+            <div class="control-group">
+                <label>หมวดหมู่</label>
+                <select id="suggestManageCategory" onchange="renderSuggestManageList()">
+                    <option value="time">ช่วงเวลา / รหัสลา (เช่น 8-16, 13-20, V, OFF)</option>
+                    <option value="note">หมายเหตุ</option>
+                    <option value="workerName">ชื่อผู้ทำงาน (ในตาราง)</option>
+                    <option value="profileName">ชื่อ-นามสกุล (โปรไฟล์)</option>
+                    <option value="profileEmpId">รหัสพนักงาน</option>
+                    <option value="profileDept">แผนก/ฝ่าย</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>เพิ่มค่าใหม่เข้าคลัง</label>
+                <input type="text" id="suggestManageInput" placeholder="พิมพ์แล้วกด Enter หรือปุ่มเพิ่ม" onkeydown="if(event.key==='Enter'){addSuggestionFromManageUI(); event.preventDefault();}">
+            </div>
+            <div class="control-group" style="justify-content: flex-end;">
+                <label>&nbsp;</label>
+                <button type="button" class="btn-action" onclick="addSuggestionFromManageUI()">➕ เพิ่มเข้าคลัง</button>
+            </div>
+            <div style="grid-column: 1 / -1;">
+                <div id="suggestManageList" class="suggest-chip-list"></div>
+            </div>
+            <div style="grid-column: 1 / -1; font-size: 12px; color: #444;">
+                * ค่าที่เพิ่มไว้ที่นี่จะขึ้นแนะนำในช่องพิมพ์ทันที แม้ยังไม่เคยพิมพ์ในตารางมาก่อนเลยก็ตาม กดปุ่ม ✕ ที่ตัวเลือกเพื่อลบออกจากคลังได้
+            </div>
+        </div>
+
+        <div class="panel-section-title" style="margin-top:15px;">📅 8. ส่งข้อมูลเข้า Google Calendar</div>
+        <div class="control-grid" style="grid-template-columns: repeat(2, 1fr);">
+            <div class="control-group">
+                <label>ส่งทั้งเดือนทีเดียว</label>
+                <button type="button" class="btn-action" onclick="exportMonthToICS()">📅 Export ปฏิทินทั้งเดือน (.ics)</button>
+            </div>
+            <div class="control-group">
+                <label>ส่งรายวัน (เช่น ตอนแลกเวร/ยกเวร)</label>
+                <div style="font-size:12px; color:#444; padding-top:6px;">กดปุ่ม 📅 ข้างเลขวันที่ในตารางด้านล่าง เพื่อเพิ่มเวรวันนั้นเข้า Google Calendar ทันที</div>
+            </div>
+            <div style="grid-column: 1 / -1; font-size: 12px; color: #444;">
+                * ต้องตั้ง "งวดประจำเดือน/ปี" ในหัวข้อ 1 ให้ถูกต้องก่อน ระบบถึงจะคำนวณวันที่จริงลงปฏิทินได้แม่นยำ<br>
+                * ไฟล์ .ics เปิดแล้วนำเข้า Google Calendar ได้เลย (Settings → Import) ส่วนปุ่มรายวันจะเปิดแท็บใหม่ให้กดบันทึกใน Google Calendar โดยตรง
+            </div>
+        </div>
+
+        <div class="panel-section-title" style="margin-top:15px;">🖨️ 9. พรีวิวและพิมพ์ใบขออนุมัติ (แบบฟอร์มมงกุฎวัฒนะ)</div>
+        <div class="control-grid" style="grid-template-columns: repeat(2, 1fr);">
+            <div class="control-group">
+                <label>รูปแบบตอนพิมพ์</label>
+                <select id="printStyleSelect" onchange="setPrintStyle(this.value)">
+                    <option value="bordered">พร้อมเส้นกรอบ (พิมพ์เป็นฟอร์มเต็ม)</option>
+                    <option value="textonly">ตัวอักษรอย่างเดียว (พิมพ์ทับฟอร์มเปล่าที่มีอยู่แล้ว)</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>&nbsp;</label>
+                <button type="button" class="btn-action" onclick="enterPrintPreview()">👁️ พรีวิวก่อนพิมพ์ / พิมพ์</button>
+            </div>
+        </div>
+
+        <div style="background: #e8f0fe; border: 1px dashed #1a4f7c; padding: 12px; border-radius: 6px; margin-top: 10px; margin-bottom: 10px;">
+            <div style="font-weight: bold; font-size: 13px; color: #1a4f7c; margin-bottom: 8px;">👀 ตัวเลือกการแสดงผล (เปิด/ปิดข้อมูลบางส่วนก่อนพิมพ์หรือดูตาราง)</div>
+            <div class="control-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 0;">
+                <label style="font-size: 13px; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                    <input type="checkbox" id="cbHideZero" onchange="reCalculateAllTable()" checked> ซ่อนเลข 0 ในช่องรวมชั่วโมง (วันที่ไม่มีงานจะเว้นว่าง)
+                </label>
+                <label style="font-size: 13px; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                    <input type="checkbox" id="cbHideAmount" onchange="toggleHideElements()"> ซ่อนยอดเงินรวม OT ด้านล่าง
+                </label>
+                <label style="font-size: 13px; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                    <input type="checkbox" id="cbHideSigName" onchange="toggleHideElements()"> ซ่อนชื่อผู้ขออนุมัติ (ลายเซ็น)
+                </label>
+            </div>
+        </div>
+
+        <div class="control-grid" style="grid-template-columns: 1fr;">
+            <button type="button" class="btn-secondary" style="padding:8px;" onclick="startNewMonth()">🧹 ล้างตารางทั้งเดือนเพื่อขึ้นเดือนใหม่ (โปรไฟล์/เรทราคายังคงเดิม)</button>
+        </div>
+
+        <div style="font-size: 12px; color: #444; margin-top: 8px;">
+            * ขนาดกระดาษตั้งเป็น A4 อัตโนมัติ ใช้ได้ทั้ง 3 โหมด (เภสัชกร/พาร์ทไทม์/ผู้ช่วยฯ) — วันที่ลง OFF หรือว่างทั้งวันจะแสดงเป็นกากบาท (✗) ในช่องแรกอัตโนมัติตอนพิมพ์<br>
+            * โหมด "ตัวอักษรอย่างเดียว" ประมาณตำแหน่งจากภาพตัวอย่างที่ให้มา หากพิมพ์ทับฟอร์มจริงแล้วตำแหน่งไม่ตรงเป๊ะ แจ้งผมได้ ปรับให้ตรงเป๊ะขึ้นได้อีก
+        </div>
+    </div>
+
+    <!-- ================= ส่วนเนื้อหาใบงานจริงที่พิมพ์ออกมา ================= -->
+    <div id="liveFormOnScreen">
+    <div class="title-main">บริษัท มงกุฎวัฒนะ จำกัด (มหาชน)</div>
+    <div class="title-sub">ใบขออนุมัติเบิกค่าตอบแทนการอยู่เวรของเจ้าหน้าที่</div>
+    <div style="text-align:center; font-size:13px; margin-bottom:10px;">งวดประจำเดือน <span id="lblTemplateMonthYear" style="font-weight:bold; border-bottom:1px dotted #000; padding:0 10px; display:inline-block; min-width:260px; text-align:center;">-</span></div>
+
+    <table class="header-table">
+        <tr>
+            <td style="width: 45%;">ข้าพเจ้า <input type="text" id="lblTemplateName" class="editable-label" style="width:75%; text-align:center;"></td>
+            <td style="width: 25%;">รหัสพนักงาน <input type="text" id="lblTemplateEmpId" class="editable-label" style="width:55%; text-align:center;"></td>
+            <td style="width: 30%;">ตำแหน่ง <input type="text" id="lblTemplatePosition" class="editable-label" style="width:65%; text-align:center;"></td>
+        </tr>
+        <tr>
+            <td>แผนก <input type="text" id="lblTemplateDept" class="editable-label" style="width:80%; text-align:center;"></td>
+            <td colspan="2">ฝ่าย <input type="text" id="lblTemplateDept2" class="editable-label" style="width:80%; text-align:center;"></td>
+        </tr>
+    </table>
+
+    <!-- โครงสร้างตารางหลัก -->
+    <div style="font-size:11px; color:#666; text-align:center; margin-bottom:4px;">➕ เพิ่มช่วงเวลาเสริมโดยไม่ลบของเดิม (รับเวรคนอื่น/ยกเวร เพิ่มได้ไม่จำกัด) • 🗑️ ล้างข้อมูลทั้งวันเพื่อลงใหม่</div>
+    <div class="mobile-scroll-hint">👉 เลื่อนซ้าย-ขวาเพื่อดูข้อมูลตารางทั้งหมด</div>
+    <div class="days-table-wrapper">
+    <table class="main-table">
+        <thead>
+            <tr>
+                <th rowspan="2" style="width: 5%;">วันที่</th>
+                <th colspan="3" style="width: 24%;">เวรทำงานปกติ (Duty)</th>
+                <th colspan="3" style="width: 24%;">เวรทำงานพิเศษ / OT</th>
+                <th colspan="2" style="width: 14%;">CLINIC / DUTY</th>
+                <th colspan="2" style="width: 14%;">ON CALL / OT</th>
+                <th rowspan="2" style="width: 10%;">ผู้ทำงาน</th>
+                <th rowspan="2" style="width: 9%;">หมายเหตุ</th>
+            </tr>
+            <tr>
+                <th class="sub-column-title">ช</th>
+                <th class="sub-column-title">บ</th>
+                <th class="sub-column-title">ด</th>
+                <th class="sub-column-title">ช</th>
+                <th class="sub-column-title">บ</th>
+                <th class="sub-column-title">ด</th>
+                <th class="sub-column-title">หัก</th>
+                <th class="sub-column-title">รวม</th>
+                <th class="sub-column-title">หัก</th>
+                <th class="sub-column-title">รวม</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            <!-- วันที่ 1-31 เจนเนอเรทอัตโนมัติ -->
+        </tbody>
+        <tfoot>
+            <tr style="background-color: #f9f9f9; font-weight: bold;">
+                <td colspan="7" style="text-align: right; padding-right: 10px;">รวม</td>
+                <td id="totalDutyBreak">-</td>
+                <td id="totalDutySum" class="auto-calculated-cell">0</td>
+                <td id="totalOtBreak">-</td>
+                <td id="totalOtSum" class="auto-calculated-cell">0</td>
+                <td></td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+    </div>
+
+    <!-- ส่วนสรุปเงินและการคำนวณสะท้อนตามจริง -->
+    <div class="footer-section">
+        <div style="border-top: 1px solid #000; padding-top: 8px;">
+            <strong>รายละเอียดการคำนวณเงินค่าตอบแทนส่วนเกิน (OT):</strong>
+            <span style="font-size:11px; color:#444; float:right;">*เวรDuty ปกติจะนำไปคำนวณเพื่อหักลบชั่วโมงฐานเงินเดือนหลัก ส่วนที่คิดเงินตรงนี้คือชั่วโมง OT สุทธิ</span>
+        </div>
+        
+        <div class="footer-grid">
+            <div id="calculationExplanationBlock" style="line-height: 1.6;">
+                <!-- ข้อความแจกแจงสูตรคำนวณเงินจะเปลี่ยนไปตามโหมดงานจริงแบบไดนามิก -->
+            </div>
+            <div style="text-align: right; padding-right: 10px;">
+                <div style="margin-bottom: 5px;">รวมเวลา Duty ทั้งสิ้น: <span id="textFinalDutyHours" style="font-weight:bold;">0</span> ชั่วโมง</div>
+                <div style="margin-bottom: 5px;">รวมเวลา OT สุทธิ: <span id="textFinalOtHours" style="font-weight:bold;">0</span> ชั่วโมง</div>
+                <div style="margin-top: 10px; font-size: 14px;">
+                    คิดเป็นจำนวนเงินสุทธิ: <span id="textFinalAmount" class="amount-highlight">0</span> บาท
+                </div>
+            </div>
+        </div>
+
+        <!-- โซนเซ็นชื่อที่ผูกกับชื่อผู้พิมพ์อัตโนมัติ สามารถแก้แมนนวลได้ -->
+        <div class="signature-box">
+            <div class="signature-row">
+                <div>ลงชื่อผู้ขออนุมัติ: <span class="signature-line" id="sigNameWorker">วิทวัส สกุลมา</span></div>
+                <div>ลงชื่อหัวหน้าแผนก: <span class="signature-line"></span></div>
+                <div>ลงชื่อหัวหน้าฝ่าย: <span class="signature-line"></span></div>
+            </div>
+            <p style="font-size: 11px; color: #444; margin-top: 25px; text-align: center; font-style: italic;">
+                *หมายเหตุ: กรุณาตรวจสอบความถูกต้องของชั่วโมงและตัวเลขราคาก่อนนำเสนออนุมัติเบิกจ่าย*
+            </p>
+        </div>
+    </div>
+    </div>
+    <!-- ปิด #liveFormOnScreen -->
+
+    <!-- ================= แบบฟอร์มสำหรับพิมพ์ล้วนๆ (จำลองใบขออนุมัติต้นฉบับ) ================= -->
+    <!-- ซ่อนอยู่ตลอดเวลาบนหน้าจอปกติ จะแสดงเฉพาะตอนพรีวิว หรือตอนสั่งพิมพ์จริงเท่านั้น -->
+    <div id="printOnlyForm">
+        <div class="calib-field" data-calib-id="title" style="text-align:center;">
+            <div class="title-main">บริษัท มงกุฎวัฒนะ จำกัด (มหาชน)</div>
+            <div class="title-sub">ใบขออนุมัติเบิกค่าตอบแทนการอยู่เวรของเจ้าหน้าที่</div>
+        </div>
+        <div class="calib-field" data-calib-id="monthYear" style="text-align:center; font-size:13px; margin-bottom:10px;">งวดประจำเดือน <span class="print-fill-inline" id="printMonthYear" style="min-width:260px; text-align:center;"></span></div>
+
+        <div style="display:flex; border:1px solid #000;">
+        <div class="calib-field" data-calib-id="hdrName" style="width:45%; padding:4px 6px; border-right:1px solid #000;">ข้าพเจ้า <span class="print-fill" id="printName"></span></div>
+        <div class="calib-field" data-calib-id="hdrEmpId" style="width:25%; padding:4px 6px; border-right:1px solid #000;">รหัสพนักงาน <span class="print-fill" id="printEmpId"></span></div>
+        <div class="calib-field" data-calib-id="hdrPosition" style="width:30%; padding:4px 6px;">ตำแหน่ง <span class="print-fill" id="printPosition"></span></div>
+        </div>
+        <div style="display:flex; border:1px solid #000; border-top:none;">
+        <div class="calib-field" data-calib-id="hdrDept" style="width:50%; padding:4px 6px; border-right:1px solid #000;">แผนก <span class="print-fill" id="printDept"></span></div>
+        <div class="calib-field" data-calib-id="hdrDept2" style="width:50%; padding:4px 6px;">ฝ่าย <span class="print-fill" id="printDept2"></span></div>
+        </div>
+
+        <div class="calib-field" data-calib-id="rateInfo" style="font-size:11px;">
+            Parttime/Clinic/Oncall เวรละ <span class="print-fill-inline" id="printRateHours">-</span> ชม. โดยขอค่าตอบแทนการอยู่เวรพิเศษเวรละ <span class="print-fill-inline" id="printRateAmount">-</span> บาท ชม.ละ <span class="print-fill-inline" id="printRatePerHour">-</span> บาท
+        </div>
+
+        <div class="calib-field" data-calib-id="mainTableZone" style="width:100%;">
+        <table class="print-main-table">
+            <thead>
+                <tr>
+                    <th rowspan="2" style="width:4%;">วันที่</th>
+                    <th colspan="3" style="width:18%;">เวรทำงานปกติ</th>
+                    <th colspan="3" style="width:18%;">เวรทำงานพิเศษ</th>
+                    <th colspan="2" style="width:12%;">CLINIC</th>
+                    <th colspan="2" style="width:12%;">ON CALL</th>
+                    <th colspan="2" style="width:16%;">ลงนาม</th>
+                    <th rowspan="2" style="width:14%;">หมายเหตุ</th>
+                </tr>
+                <tr>
+                    <th>ช</th><th>บ</th><th>ด</th>
+                    <th>ช</th><th>บ</th><th>ด</th>
+                    <th>หัก</th><th>รวม</th>
+                    <th>หัก</th><th>รวม</th>
+                    <th>ผู้อยู่เวร</th><th>ผู้ควบคุม</th>
+                </tr>
+            </thead>
+            <tbody id="printTableBody"></tbody>
+            <tfoot>
+                <tr style="font-weight:bold;">
+                    <td colspan="7" style="text-align:right; padding-right:8px;">รวม</td>
+                    <td id="printTotalDutyBreak">-</td>
+                    <td id="printTotalDutySum">0</td>
+                    <td id="printTotalOtBreak">-</td>
+                    <td id="printTotalOtSum">0</td>
+                    <td colspan="3"></td>
+                </tr>
+            </tfoot>
+        </table>
+        </div>
+
+        <div class="calib-field" data-calib-id="moneyLine1">1. ค่าอยู่เวร บ่าย-ดึก<span class="print-fill-inline" style="min-width:160px;">&nbsp;</span>เวร เป็นเงิน<span class="print-fill-inline" style="min-width:160px;">&nbsp;</span>บาท</div>
+        <div class="calib-field" data-calib-id="moneyLine2">2. ค่าอยู่เวรพิเศษ <span class="print-fill-inline" id="printPositionShort" style="min-width:60px;"></span> <span class="print-fill-inline" id="printOtHoursForMoney" style="min-width:50px;"></span> ชม. เป็นจำนวนเงิน <span class="print-fill-inline" id="printAmountForMoney" style="min-width:160px;"></span> บาท</div>
+
+        <div class="calib-field" data-calib-id="sigApplicant">ลงชื่อ.................................................... ผู้ขออนุมัติ (<span id="printSigName" style="font-weight:bold;"></span>)</div>
+        <div style="display:flex; justify-content:space-between; margin-top:18px;">
+        <div class="calib-field" data-calib-id="sigDept" style="width:45%;">ลงชื่อ.................................................... หัวหน้าแผนก</div>
+        <div class="calib-field" data-calib-id="sigDivision" style="width:45%;">ลงชื่อ.................................................... หัวหน้าฝ่าย</div>
+        </div>
+
+        <div class="calib-field" data-calib-id="footNote" style="font-size:11px; text-align:center;">
+            หมายเหตุ พนักงานที่กรอกข้อมูลไม่ครบถ้วน แผนกบุคคลจะไม่ดำเนินการคิดค่าตอบแทนให้
+        </div>
+    </div>
+
+    <!-- แผงจัดตำแหน่งอิสระ: เปิดจากปุ่ม 🎯 ในแถบเครื่องมือตอนพรีวิว -->
+    <div id="calibPanel">
+        <strong>🎯 จัดตำแหน่งอิสระ (มม. นับจากขอบกระดาษ)</strong>
+        <div style="font-size:11px; color:#9db; margin:6px 0 10px;">คลิกช่องไหนก็ปรับเฉพาะช่องนั้น ค่าที่ใส่คือระยะห่างจากขอบกระดาษ A4 แต่ละด้าน (มม.) เว้นว่าง = ไม่บังคับด้านนั้น</div>
+
+        <div class="calib-global-row">
+            <label>ขนาดตัวอักษร (px)</label>
+            <input type="number" id="calibFontSize" min="6" max="30" step="0.5" onchange="calibSetFontSize(this.value)">
+        </div>
+        <div class="calib-global-row">
+            <label>ความสูงแถวตาราง 31 วัน (มม.)</label>
+            <input type="number" id="calibRowHeight" min="2" max="20" step="0.1" onchange="calibSetRowHeight(this.value)">
+        </div>
+        <div class="calib-global-row">
+            <button type="button" class="btn-secondary" onclick="calibResetAll()">🔄 รีเซ็ตตำแหน่งทั้งหมด</button>
+        </div>
+
+        <div id="calibFieldList"></div>
+    </div>
+
+</div>
+
+<!-- แถบเครื่องมือลอยด้านบนตอนอยู่ในโหมดพรีวิว (ไม่ปรากฏตอนพิมพ์จริง) -->
+<div class="print-preview-toolbar" style="position:sticky; top:0; z-index:500; background:#2c3e50; color:#fff; padding:10px 14px; align-items:center; gap:14px; flex-wrap:wrap;">
+    <strong>👁️ โหมดพรีวิวก่อนพิมพ์</strong>
+    <label style="font-size:13px;"><input type="radio" name="printStyleChoice" value="bordered" checked onchange="setPrintStyle('bordered')"> พร้อมเส้นกรอบ</label>
+    <label style="font-size:13px;"><input type="radio" name="printStyleChoice" value="textonly" onchange="setPrintStyle('textonly')"> ตัวอักษรอย่างเดียว (พิมพ์ทับฟอร์มเปล่า)</label>
+    <button type="button" class="btn-action" id="calibToggleBtn" style="width:auto; padding:6px 16px;" onclick="toggleCalibMode()">🎯 จัดตำแหน่งอิสระ</button>
+    <button type="button" class="btn-action" style="width:auto; padding:6px 16px;" onclick="doPrint()">🖨️ พิมพ์เลย</button>
+    <button type="button" class="btn-secondary" style="width:auto; padding:6px 16px;" onclick="exitPrintPreview()">❌ ปิดพรีวิว</button>
+</div>
+<script>
+    // โครงสร้างข้อมูลอัตราค่าตอบแทนเริ่มต้น (ปรับเปลี่ยนสดๆ ผ่านหน้าเว็บได้)
+    let rates = {
+        pharmacist: {
+            otDayRate: 250,      // เรท OT กลางวัน
+            otNightRate: 300,    // เรท OT กลางคืน/ดึก
+        },
+        pharmacist_parttime: {
+            otDayRate: 250,      // เรท OT กลางวัน (พาร์ทไทม์ ปรับแยกจากเภสัชกรประจำได้)
+            otNightRate: 300,    // เรท OT กลางคืน/ดึก (พาร์ทไทม์)
+        },
+        assistant: {
+            otFlatRate: 150,     // เรท OT ราคาเดียว
+            nightBonusRate: 100  // ค่าเวรดึกสะสมรายคืน
+        }
+    };
+
+    // ============================================================
+    // 🧠 ระบบ Autocomplete: จดจำทุกค่าที่เคยพิมพ์ไว้ แล้วแนะนำให้อัตโนมัติในครั้งถัดไป
+    // เก็บด้วย localStorage ของเบราว์เซอร์ (คงอยู่ถาวรในเครื่อง แม้ปิดหน้าเว็บแล้วเปิดใหม่)
+    // หมายเหตุ: ถ้าเปิดดูผ่านหน้าพรีวิวแชทของ Claude โดยตรง localStorage อาจไม่ถูกบันทึกข้ามเซสชัน
+    // แต่เมื่อนำไฟล์นี้ไปโฮสต์ใช้งานจริง (เช่น GitHub Pages) หรือเปิดเป็นไฟล์ปกติในเบราว์เซอร์ จะบันทึกได้ตามปกติ
+    // ============================================================
+    const SUGG_KEYS = {
+        time: 'otcalc_suggest_time',
+        note: 'otcalc_suggest_note',
+        workerName: 'otcalc_suggest_workername',
+        profileName: 'otcalc_suggest_profilename',
+        profileEmpId: 'otcalc_suggest_profileempid',
+        profileDept: 'otcalc_suggest_profiledept'
+    };
+    const ALL_DATALIST_IDS = {
+        [SUGG_KEYS.time]: 'timeSuggestions',
+        [SUGG_KEYS.note]: 'noteSuggestions',
+        [SUGG_KEYS.workerName]: 'workerNameSuggestions',
+        [SUGG_KEYS.profileName]: 'profileNameSuggestions',
+        [SUGG_KEYS.profileEmpId]: 'profileEmpIdSuggestions',
+        [SUGG_KEYS.profileDept]: 'profileDeptSuggestions'
+    };
+    const suggestDebounceTimers = {};
+
+    function loadSuggestions(storageKey) {
+        try {
+            const raw = localStorage.getItem(storageKey);
+            return raw ? JSON.parse(raw) : [];
+        } catch (e) { return []; }
+    }
+
+    function saveSuggestionsList(storageKey, arr) {
+        try { localStorage.setItem(storageKey, JSON.stringify(arr)); } catch (e) { /* เก็บไม่ได้ก็ปล่อยผ่าน ไม่กระทบการใช้งานหลัก */ }
+    }
+
+    function renderDatalist(datalistId, arr) {
+        const dl = document.getElementById(datalistId);
+        if (!dl) return;
+        dl.innerHTML = arr.map(v => `<option value="${String(v).replace(/"/g, '&quot;')}"></option>`).join('');
+    }
+
+    // เพิ่มค่าใหม่เข้าไปในคลังคำแนะนำ (ถ้ายังไม่เคยมี) — รองรับค่าที่มีจุลภาคคั่นหลายรายการในช่องเดียว เช่น "8-16,20-24"
+    function addSuggestion(storageKey, datalistId, rawValue) {
+        if (!rawValue) return;
+        const fragments = String(rawValue).split(',').map(s => s.trim()).filter(Boolean);
+        if (fragments.length === 0) return;
+
+        let arr = loadSuggestions(storageKey);
+        let changed = false;
+        fragments.forEach(v => {
+            if (!arr.includes(v)) {
+                arr.push(v);
+                changed = true;
+            }
+        });
+        if (changed) {
+            if (arr.length > 80) arr = arr.slice(arr.length - 80); // กันคลังยาวเกินไป เก็บล่าสุด 80 รายการ
+            saveSuggestionsList(storageKey, arr);
+            renderDatalist(datalistId, arr);
+            if (typeof renderSuggestManageList === 'function') renderSuggestManageList(); // ซิงก์รายการที่แสดงในหัวข้อ 7 ให้ทันสมัยเสมอ
+        }
+    }
+
+    // debounce: บันทึกคำแนะนำหลังผู้ใช้หยุดพิมพ์ 500ms (ตาข่ายนิรภัยเผื่อ onchange ไม่ยิงบนมือถือ)
+    function scheduleSuggestionSave(inputId, storageKey, datalistId) {
+        if (suggestDebounceTimers[inputId]) clearTimeout(suggestDebounceTimers[inputId]);
+        suggestDebounceTimers[inputId] = setTimeout(() => {
+            const el = document.getElementById(inputId);
+            if (el) addSuggestion(storageKey, datalistId, el.value);
+        }, 500);
+    }
+
+    // บันทึกคำแนะนำทันที (เรียกจาก onchange) และยกเลิกตัวจับเวลาที่ค้างอยู่
+    function commitSuggestionSave(inputId, storageKey, datalistId) {
+        if (suggestDebounceTimers[inputId]) { clearTimeout(suggestDebounceTimers[inputId]); delete suggestDebounceTimers[inputId]; }
+        const el = document.getElementById(inputId);
+        if (el) addSuggestion(storageKey, datalistId, el.value);
+    }
+
+    // โหลดคลังคำแนะนำทั้งหมดที่เคยบันทึกไว้ มาเติมใส่ <datalist> ตอนเปิดหน้าเว็บ
+    function initAllSuggestions() {
+        Object.keys(ALL_DATALIST_IDS).forEach(storageKey => {
+            renderDatalist(ALL_DATALIST_IDS[storageKey], loadSuggestions(storageKey));
+        });
+    }
+
+    // ============================================================
+    // 🔽 กล่องแนะนำอัตโนมัติแบบลอย (custom-built ควบคุมเองทั้งหมด)
+    // เหตุผลที่ไม่ใช้ <datalist> ของเบราว์เซอร์: ป๊อปอัพแนะนำของเบราว์เซอร์บนมือถือบางรุ่น (โดยเฉพาะ Android WebView)
+    // มีปัญหาแทรกแซงจังหวะ blur/change event ของช่องกรอก ทำให้ตรรกะสำคัญ (เช่น รหัสลา V/S/P) ทำงานไม่แน่นอน
+    // การสร้างกล่องแนะนำเองทำให้ควบคุมจังหวะ event ได้ชัวร์ 100% ในทุกเบราว์เซอร์
+    // ============================================================
+    let acBox = null;
+    let acCurrentInput = null;
+
+    function getAutocompleteCategoryForInput(el) {
+        const id = el.id || '';
+        if (/^duty-(sh|ba|dk)-\d+$/.test(id) || /^ot-(sh|ba|dk)-\d+$/.test(id) || id === 'quickTimeInput') {
+            return SUGG_KEYS.time;
+        }
+        if (/^note-\d+$/.test(id)) return SUGG_KEYS.note;
+        if (/^worker-name-\d+$/.test(id)) return SUGG_KEYS.workerName;
+        if (id === 'inputName') return SUGG_KEYS.profileName;
+        if (id === 'inputEmpId') return SUGG_KEYS.profileEmpId;
+        if (id === 'inputDept') return SUGG_KEYS.profileDept;
+        return null;
+    }
+
+    function showAutocomplete(inputEl, storageKey) {
+        if (!acBox) return;
+        const all = loadSuggestions(storageKey);
+        const query = inputEl.value.trim().toLowerCase();
+        const matches = query
+            ? all.filter(v => v.toLowerCase().includes(query))
+            : all.slice(-15).reverse(); // ยังไม่พิมพ์อะไร -> โชว์ค่าที่เพิ่งใช้ล่าสุดก่อน
+
+        if (matches.length === 0) { hideAutocomplete(); return; }
+
+        acCurrentInput = inputEl;
+
+        acBox.innerHTML = matches.slice(0, 8).map(v => {
+            const safe = String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+            return `<div class="autocomplete-item" data-value="${safe}">${safe}</div>`;
+        }).join('');
+
+        const rect = inputEl.getBoundingClientRect();
+        acBox.style.left = (window.scrollX + rect.left) + 'px';
+        acBox.style.top = (window.scrollY + rect.bottom + 3) + 'px';
+        acBox.style.width = Math.max(rect.width, 110) + 'px';
+        acBox.style.display = 'block';
+    }
+
+    function hideAutocomplete() {
+        if (acBox) acBox.style.display = 'none';
+        acCurrentInput = null;
+    }
+
+    function initCustomAutocomplete() {
+        acBox = document.getElementById('globalAutocompleteBox');
+
+        // แสดงกล่องแนะนำเมื่อโฟกัส/พิมพ์ในช่องที่รองรับ (ใช้ event delegation ครอบคลุมทุกช่องอัตโนมัติ แม้สร้างทีหลัง)
+        document.addEventListener('focusin', function (e) {
+            const el = e.target;
+            if (!el || el.tagName !== 'INPUT') return;
+            const key = getAutocompleteCategoryForInput(el);
+            if (!key) return;
+            showAutocomplete(el, key);
+        });
+
+        document.addEventListener('input', function (e) {
+            const el = e.target;
+            if (!el || el.tagName !== 'INPUT') return;
+            const key = getAutocompleteCategoryForInput(el);
+            if (!key) return;
+            showAutocomplete(el, key);
+        });
+
+        // ซ่อนกล่องเมื่อออกจากช่อง (หน่วงเล็กน้อยให้การแตะเลือกตัวเลือกทันเวลา)
+        document.addEventListener('focusout', function (e) {
+            const el = e.target;
+            if (!el || el.tagName !== 'INPUT') return;
+            if (!getAutocompleteCategoryForInput(el)) return;
+            setTimeout(() => {
+                // ถ้าผู้ใช้สลับโฟกัสไปช่องอื่นที่รองรับ autocomplete อยู่แล้วอย่างรวดเร็ว (focusin ใหม่ทำงานไปแล้ว)
+                // อย่าไปซ่อนกล่องที่กำลังแสดงของช่องใหม่ทับ ให้เช็คก่อนว่าช่องที่โฟกัสอยู่ตอนนี้ยังต้องใช้กล่องอยู่หรือไม่
+                const active = document.activeElement;
+                if (active && getAutocompleteCategoryForInput(active)) return;
+                hideAutocomplete();
+            }, 180);
+        });
+
+        // เลือกตัวเลือกจากกล่องแนะนำ — ใช้ mousedown/touchstart + preventDefault กัน blur ตัดหน้าก่อนรับค่า
+        const pickHandler = function (e) {
+            const item = e.target.closest && e.target.closest('.autocomplete-item');
+            if (!item) return;
+            e.preventDefault();
+            const value = item.getAttribute('data-value');
+            if (acCurrentInput) {
+                acCurrentInput.value = value;
+                acCurrentInput.focus();
+                // ยิง change event เดียวกับที่ผู้ใช้พิมพ์เองแล้วออกจากช่อง เพื่อให้ตรรกะเดิมทั้งหมดทำงานตามปกติ
+                acCurrentInput.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            hideAutocomplete();
+        };
+        acBox.addEventListener('mousedown', pickHandler);
+        acBox.addEventListener('touchstart', pickHandler, { passive: false });
+    }
+
+    // ช่องหมายเหตุ: บันทึกคำแนะนำ + รีเฟรชยอดรวมสด (เพราะหมายเหตุมีผลต่อชั่วโมงลาสะสม)
+    function handleNoteInput(day) {
+        scheduleSuggestionSave(`note-${day}`, SUGG_KEYS.note, 'noteSuggestions');
+        calculateGrandTotals();
+    }
+    function handleNoteChange(day) {
+        commitSuggestionSave(`note-${day}`, SUGG_KEYS.note, 'noteSuggestions');
+        calculateGrandTotals();
+    }
+
+    // ============================================================
+    // 🗂️ UI จัดการคลังคำแนะนำอัตโนมัติ — เพิ่ม/ลบล่วงหน้าได้โดยไม่ต้องพิมพ์ในตารางก่อน
+    // ============================================================
+    function getSuggestCategoryInfo(catValue) {
+        const map = {
+            time: { storageKey: SUGG_KEYS.time, datalistId: 'timeSuggestions' },
+            note: { storageKey: SUGG_KEYS.note, datalistId: 'noteSuggestions' },
+            workerName: { storageKey: SUGG_KEYS.workerName, datalistId: 'workerNameSuggestions' },
+            profileName: { storageKey: SUGG_KEYS.profileName, datalistId: 'profileNameSuggestions' },
+            profileEmpId: { storageKey: SUGG_KEYS.profileEmpId, datalistId: 'profileEmpIdSuggestions' },
+            profileDept: { storageKey: SUGG_KEYS.profileDept, datalistId: 'profileDeptSuggestions' }
+        };
+        return map[catValue];
+    }
+
+    function addSuggestionFromManageUI() {
+        const cat = document.getElementById('suggestManageCategory').value;
+        const input = document.getElementById('suggestManageInput');
+        const info = getSuggestCategoryInfo(cat);
+        if (!info || !input || !input.value.trim()) return;
+
+        addSuggestion(info.storageKey, info.datalistId, input.value);
+        input.value = '';
+        renderSuggestManageList();
+    }
+
+    function removeSuggestion(storageKey, datalistId, value) {
+        let arr = loadSuggestions(storageKey);
+        arr = arr.filter(v => v !== value);
+        saveSuggestionsList(storageKey, arr);
+        renderDatalist(datalistId, arr);
+        renderSuggestManageList();
+    }
+
+    function renderSuggestManageList() {
+        const catEl = document.getElementById('suggestManageCategory');
+        const listEl = document.getElementById('suggestManageList');
+        if (!catEl || !listEl) return;
+
+        const info = getSuggestCategoryInfo(catEl.value);
+        if (!info) return;
+
+        listEl.dataset.storageKey = info.storageKey;
+        listEl.dataset.datalistId = info.datalistId;
+
+        const arr = loadSuggestions(info.storageKey);
+        if (arr.length === 0) {
+            listEl.innerHTML = '<span style="font-size:12px;color:#999;">ยังไม่มีข้อมูลในคลังนี้ ลองเพิ่มดูได้เลยครับ</span>';
+            return;
+        }
+
+        listEl.innerHTML = arr.map(v => {
+            const safe = String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+            return `<span class="suggest-chip">${safe}<button type="button" class="suggest-chip-remove" data-value="${safe}">✕</button></span>`;
+        }).join('');
+    }
+
+    // ดักคลิกปุ่มลบด้วย event delegation (กันปัญหาการ escape ค่าที่มีเครื่องหมายคำพูดในตัว)
+    document.addEventListener('click', function (e) {
+        if (e.target && e.target.classList && e.target.classList.contains('suggest-chip-remove')) {
+            const listEl = document.getElementById('suggestManageList');
+            if (!listEl) return;
+            removeSuggestion(listEl.dataset.storageKey, listEl.dataset.datalistId, e.target.getAttribute('data-value'));
+        }
+    });
+
+    window.onload = function() {
+        // 0. ตั้งค่าเริ่มต้นงวดเดือน/ปีเป็นเดือนปัจจุบัน (ผู้ใช้ปรับเปลี่ยนได้ทีหลัง)
+        const now = new Date();
+        document.getElementById('inputMonth').value = String(now.getMonth() + 1);
+        document.getElementById('inputYearCE').value = String(now.getFullYear());
+
+        // 1. เจนกล่องปฏิทินให้เลือกวันได้ง่ายๆ
+        const cbGrid = document.getElementById('checkboxGrid');
+        for (let d = 1; d <= 31; d++) {
+            cbGrid.innerHTML += `
+                <label class="day-checkbox-label" id="lbl-check-${d}">
+                    <input type="checkbox" id="check-day-${d}" value="${d}" onchange="toggleDayHighlight(${d})"> วันที่ ${d}
+                </label>
+            `;
+        }
+
+        // 2. เจนตารางใบเซ็นเวร 31 วัน
+        const tbody = document.getElementById('tableBody');
+        for (let day = 1; day <= 31; day++) {
+            const tr = document.createElement('tr');
+            tr.id = `row-${day}`;
+            tr.innerHTML = `
+                <td>${day}<button type="button" class="add-shift-btn" onclick="promptAddShift(${day})" title="เพิ่มอีกช่วงเวลา/รหัสลา โดยไม่ลบของเดิม">➕</button><button type="button" class="add-shift-btn clear-day-btn" onclick="confirmClearDay(${day})" title="ล้างข้อมูลเวลา/หมายเหตุทั้งหมดของวันนี้">🗑️</button><button type="button" class="add-shift-btn cal-day-btn" onclick="addDayToGoogleCalendar(${day})" title="เพิ่มเวรวันนี้เข้า Google Calendar">📅</button></td>
+                <td><input type="text" class="cell-input" id="duty-sh-${day}" oninput="handleCellInput(${day}, 'duty-sh-${day}')" onchange="smartCellInput(${day}, 'duty-sh-${day}')"></td>
+                <td><input type="text" class="cell-input" id="duty-ba-${day}" oninput="handleCellInput(${day}, 'duty-ba-${day}')" onchange="smartCellInput(${day}, 'duty-ba-${day}')"></td>
+                <td><input type="text" class="cell-input" id="duty-dk-${day}" oninput="handleCellInput(${day}, 'duty-dk-${day}')" onchange="smartCellInput(${day}, 'duty-dk-${day}')"></td>
+                <td><input type="text" class="cell-input" id="ot-sh-${day}" oninput="handleCellInput(${day}, 'ot-sh-${day}')" onchange="smartCellInput(${day}, 'ot-sh-${day}')"></td>
+                <td><input type="text" class="cell-input" id="ot-ba-${day}" oninput="handleCellInput(${day}, 'ot-ba-${day}')" onchange="smartCellInput(${day}, 'ot-ba-${day}')"></td>
+                <td><input type="text" class="cell-input" id="ot-dk-${day}" oninput="handleCellInput(${day}, 'ot-dk-${day}')" onchange="smartCellInput(${day}, 'ot-dk-${day}')"></td>
+                <td id="break-duty-${day}">-</td>
+                <td id="sum-duty-${day}" class="auto-calculated-cell">0</td>
+                <td id="break-ot-${day}">-</td>
+                <td id="sum-ot-${day}" class="auto-calculated-cell">0</td>
+                <td><input type="text" id="worker-name-${day}" style="width:95%; border:none; text-align:center; font-size:12px; background:transparent;" oninput="scheduleSuggestionSave('worker-name-${day}', SUGG_KEYS.workerName, 'workerNameSuggestions')" onchange="commitSuggestionSave('worker-name-${day}', SUGG_KEYS.workerName, 'workerNameSuggestions')"></td>
+                <td><input type="text" id="note-${day}" style="width:95%; border:none; text-align:center; font-size:12px; background:transparent;" oninput="handleNoteInput(${day})" onchange="handleNoteChange(${day})"></td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        syncProfileInfo();
+        switchMode();
+        initAllSuggestions(); // 🧠 โหลดคลังคำแนะนำอัตโนมัติที่เคยบันทึกไว้กลับมาแสดงผล
+        initCustomAutocomplete(); // 🔽 เปิดใช้งานกล่องแนะนำอัตโนมัติแบบ custom (แทน native datalist)
+        renderSuggestManageList();
+        checkForAutosaveDraft(); // 💾 เช็คว่ามีข้อมูลที่บันทึกอัตโนมัติค้างไว้จากครั้งก่อนหรือไม่ ถ้ามีจะถามก่อนว่าจะเรียกคืนไหม
+    };
+
+    // ฟังก์ชันอำนวยความสะดวกในปฏิทินจำลอง
+    function toggleDayHighlight(day) {
+        const cb = document.getElementById(`check-day-${day}`);
+        const lbl = document.getElementById(`lbl-check-${day}`);
+        if(cb.checked) lbl.classList.add('selected');
+        else lbl.classList.remove('selected');
+    }
+
+    function selectAllDays(status) {
+        for(let d=1; d<=31; d++) {
+            const cb = document.getElementById(`check-day-${d}`);
+            if(cb) {
+                cb.checked = status;
+                toggleDayHighlight(d);
+            }
+        }
+    }
+
+    // ซิงค์ชื่อข้อมูลโปรไฟล์จากตัวคอนโทรลเลอร์ลงไปที่ใบงานจริงและช่องลายเซ็น
+    let lastAutoFilledWorkerName = ''; // เก็บชื่อล่าสุดที่ระบบเคยหยอดอัตโนมัติไว้ ใช้เทียบว่าช่องไหนยังไม่ถูกแก้เอง
+
+    function syncProfileInfo() {
+        const name = document.getElementById('inputName').value;
+        const empId = document.getElementById('inputEmpId').value;
+        const dept = document.getElementById('inputDept').value;
+
+        document.getElementById('lblTemplateName').value = name;
+        document.getElementById('lblTemplateEmpId').value = empId;
+        document.getElementById('lblTemplateDept').value = dept;
+        document.getElementById('lblTemplateDept2').value = dept;
+        document.getElementById('sigNameWorker').innerText = name;
+
+        // งวดประจำเดือน: แสดงผลเป็น "เดือนไทย พ.ศ." บนหัวใบ (แปลงจาก ค.ศ. ที่กรอก +543)
+        const monthSelect = document.getElementById('inputMonth');
+        const yearInput = document.getElementById('inputYearCE');
+        const monthYearLbl = document.getElementById('lblTemplateMonthYear');
+        if (monthSelect && yearInput && monthYearLbl) {
+            const yearCE = parseInt(yearInput.value) || 0;
+            if (yearCE > 0) {
+                const monthText = monthSelect.options[monthSelect.selectedIndex].text;
+                monthYearLbl.innerText = `${monthText} พ.ศ. ${yearCE + 543}`;
+            } else {
+                monthYearLbl.innerText = '-';
+            }
+        }
+
+        const newFirstName = name.split(' ')[0]; // ดึงเฉพาะชื่อจริงสั้นๆ หยอดใส่ช่องตาราง
+
+        // หยอด/อัปเดตชื่อลงในช่องตารางผู้ทำงานทุกแถว
+        // เงื่อนไข: อัปเดตเฉพาะช่องที่ "ว่าง" หรือ "ยังเป็นชื่อเดิมที่ระบบเคยหยอดอัตโนมัติไว้ก่อนหน้า"
+        // เพื่อไม่ให้ไปทับชื่อที่ผู้ใช้พิมพ์เองแยกต่างหาก (เช่น วันที่มีคนอื่นมาทำแทน)
+        // ⚠️ ยกเว้นวันที่เป็น OFF หรือลาเต็มวัน (V/S/P) — วันเหล่านี้ไม่มีการทำงานจริง จึงไม่ควรมีชื่อผู้ทำงานเลย
+        for (let d = 1; d <= 31; d++) {
+            const cellWorker = document.getElementById(`worker-name-${d}`);
+            const dutyShVal = document.getElementById(`duty-sh-${d}`).value;
+            const isNonWorkDay = (dutyShVal === 'OFF' || dutyShVal === 'ลาเต็มวัน');
+
+            if (isNonWorkDay) {
+                if (cellWorker) cellWorker.value = '';
+                continue;
+            }
+            if (cellWorker && (!cellWorker.value || cellWorker.value === lastAutoFilledWorkerName)) {
+                cellWorker.value = newFirstName;
+            }
+        }
+        lastAutoFilledWorkerName = newFirstName;
+
+        if (typeof scheduleAutosave === 'function') scheduleAutosave();
+    }
+
+    // ฟังก์ชันสลับโหมดและเรทราคา
+    function switchMode() {
+        const mode = document.getElementById('posSelect').value;
+        const lblPos = document.getElementById('lblTemplatePosition');
+        const rateZone = document.getElementById('rateControlGrid');
+
+        if (mode === 'pharmacist') {
+            lblPos.value = "เภสัชกร";
+            rateZone.innerHTML = `
+                <div class="control-group">
+                    <label>เรท OT กลางวัน (บาท/ชม.)</label>
+                    <input type="number" id="rateOptPharmacistDay" value="${rates.pharmacist.otDayRate}" oninput="updateRateValues()">
+                </div>
+                <div class="control-group">
+                    <label>เรท OT หลัง 20:00 (บาท/ชม.)</label>
+                    <input type="number" id="rateOptPharmacistNight" value="${rates.pharmacist.otNightRate}" oninput="updateRateValues()">
+                </div>
+            `;
+        } else if (mode === 'pharmacist_parttime') {
+            lblPos.value = "เภสัชกรพาร์ทไทม์";
+            rateZone.innerHTML = `
+                <div class="control-group">
+                    <label>เรท OT กลางวัน (บาท/ชม.)</label>
+                    <input type="number" id="rateOptPtDay" value="${rates.pharmacist_parttime.otDayRate}" oninput="updateRateValues()">
+                </div>
+                <div class="control-group">
+                    <label>เรท OT หลัง 20:00 (บาท/ชม.)</label>
+                    <input type="number" id="rateOptPtNight" value="${rates.pharmacist_parttime.otNightRate}" oninput="updateRateValues()">
+                </div>
+                <div style="grid-column: 1 / -1; font-size: 12px; color: #444;">
+                    * โหมดพาร์ทไทม์: ทุกช่วงเวลาที่กรอกจะถูกนับเป็น <strong>OT ทั้งหมด</strong> โดยอัตโนมัติ (ไม่มีการนับ Duty เลย)
+                </div>
+            `;
+        } else {
+            lblPos.value = "ผู้ช่วยเภสัชกร";
+            rateZone.innerHTML = `
+                <div class="control-group">
+                    <label>เรท OT ราคาเดียว (บาท/ชม.)</label>
+                    <input type="number" id="rateOptAssistantOt" value="${rates.assistant.otFlatRate}" oninput="updateRateValues()">
+                </div>
+                <div class="control-group">
+                    <label>ค่าอยู่เวรดึกเพิ่มพิเศษ (บาท/คืน)</label>
+                    <input type="number" id="rateOptAssistantNight" value="${rates.assistant.nightBonusRate}" oninput="updateRateValues()">
+                </div>
+            `;
+        }
+        reCalculateAllTable();
+    }
+
+    // ปรับอัปเดตค่าตัวแปรเรทราคาเมื่อผู้ใช้งานแก้ไขบนฟิลด์กรอกข้อมูล
+    function updateRateValues() {
+        const mode = document.getElementById('posSelect').value;
+        if (mode === 'pharmacist') {
+            rates.pharmacist.otDayRate = parseFloat(document.getElementById('rateOptPharmacistDay').value) || 0;
+            rates.pharmacist.otNightRate = parseFloat(document.getElementById('rateOptPharmacistNight').value) || 0;
+        } else if (mode === 'pharmacist_parttime') {
+            rates.pharmacist_parttime.otDayRate = parseFloat(document.getElementById('rateOptPtDay').value) || 0;
+            rates.pharmacist_parttime.otNightRate = parseFloat(document.getElementById('rateOptPtNight').value) || 0;
+        } else {
+            rates.assistant.otFlatRate = parseFloat(document.getElementById('rateOptAssistantOt').value) || 0;
+            rates.assistant.nightBonusRate = parseFloat(document.getElementById('rateOptAssistantNight').value) || 0;
+        }
+        calculateGrandTotals();
+    }
+
+    // ฟังก์ชันถอดวิเคราะห์ช่วงเวลาทำงาน
+    // รองรับ "หลายช่วงเวลาในวันเดียว" คั่นด้วยจุลภาค (,) เช่น "8-16,20-24" โดยรวมชั่วโมงทั้งหมดเข้าด้วยกัน
+    function parseShiftHours(timeStr) {
+        if (!timeStr || !timeStr.trim()) return null;
+        let segments = timeStr.split(',').map(s => s.trim()).filter(Boolean);
+        if (segments.length === 0) return null;
+
+        let totalHours = 0, dayHrs = 0, nightHrs = 0;
+        let firstStart = null, lastEnd = null;
+        let validCount = 0;
+
+        segments.forEach(seg => {
+            let clean = seg.replace(/\s+/g, '').replace('น.', '');
+            let parts = clean.split('-');
+            if (parts.length !== 2) return;
+
+            let start = parseFloat(parts[0]);
+            let end = parseFloat(parts[1]);
+            if (isNaN(start) || isNaN(end)) return;
+
+            let hours = (end > start) ? (end - start) : ((24 - start) + end);
+
+            // ค้นหาจำนวนชั่วโมงที่เป็นโซนดึก (ช่วงเวลา 20:00 ถึง 08:00 น.)
+            let current = start;
+            for (let i = 0; i < hours; i++) {
+                let hr = current % 24;
+                if (hr >= 20 || hr < 8) nightHrs++;
+                else dayHrs++;
+                current++;
+            }
+
+            if (firstStart === null) firstStart = start;
+            lastEnd = end;
+            totalHours += hours;
+            validCount++;
+        });
+
+        if (validCount === 0) return null;
+
+        return {
+            hours: totalHours,
+            start: firstStart,
+            end: lastEnd,
+            dayHrs,
+            nightHrs,
+            isNight: nightHrs > 0   // มีชั่วโมงที่ตกอยู่ในโซนดึกอย่างน้อย 1 ชม.
+        };
+    }
+
+    // ⚡ ฟังก์ชันเพิ่มเติม: จัดการแยกข้อความกล่องรับข้อมูล 30 วันลงไปในช่อง Duty เดิม
+    function processBulkTextImport() {
+        const text = document.getElementById('bulkInput').value;
+        // หมายเหตุ: แต่ละวันควรขึ้นบรรทัดใหม่ (ตามตัวอย่างในกล่องคำแนะนำ)
+        // ค่าของแต่ละวันสามารถมีจุลภาคได้แล้ว (เพื่อรองรับ 3 ช่วงเวลาในวันเดียว เช่น 8-16,20-24)
+        const regex = /(?:วันที่\s*|(?:\b|^))([1-9]|[12]\d|3[01])\s*[\s.:=\->]+\s*([^\n]+)/gi;
+        
+        let match;
+        let hasData = false;
+
+        while ((match = regex.exec(text)) !== null) {
+            const day = parseInt(match[1]);
+            const dutyRaw = match[2].trim();
+            
+            if (day >= 1 && day <= 31) {
+                hasData = true;
+                clearDayTimeCells(day);
+                addSuggestion(SUGG_KEYS.time, 'timeSuggestions', dutyRaw); // 🧠 จำรูปแบบที่นำเข้ามาไว้ใช้ครั้งถัดไป
+
+                // ใช้ตัวถอดรหัสลา/หยุดพิเศษกลาง (ใช้ร่วมกับการพิมพ์ตรงในตาราง เพื่อให้ผลลัพธ์ตรงกันเสมอ)
+                if (!applyLeaveOrSpecialCode(day, dutyRaw)) {
+                    // ไม่ใช่รหัสลา/หยุดพิเศษ -> เป็นช่วงเวลาทำงานปกติ กระจายลงช่องเช้า/บ่าย/ดึก (Duty/OT) อัตโนมัติ
+                    distributeDaySegments(day, dutyRaw);
+                }
+
+                manualCalculateRow(day);
+            }
+        }
+
+        if(!hasData) {
+            alert("ไม่พบรูปแบบข้อมูลวันที่และเวรปฏิบัติงาน กรุณาตรวจสอบข้อความนำเข้าอีกครั้งครับ");
+        }
+    }
+
+    // เคลียร์ช่องเวลาทั้ง 6 ช่อง + หมายเหตุ ของวันนั้นๆ ก่อนกรอกข้อมูลชุดใหม่
+    function clearDayTimeCells(day) {
+        ['duty-sh', 'duty-ba', 'duty-dk', 'ot-sh', 'ot-ba', 'ot-dk'].forEach(prefix => {
+            const el = document.getElementById(`${prefix}-${day}`);
+            if (el) el.value = '';
+        });
+        const noteEl = document.getElementById(`note-${day}`);
+        if (noteEl) noteEl.value = '';
+    }
+
+    // 🏖️ ตัวถอดรหัสลา/หยุดพิเศษกลาง — ใช้ทั้งกล่องนำเข้าข้อความ 30 วัน และการพิมพ์ตรงในตาราง (smartCellInput)
+    // รองรับ: OFF/O (วันหยุด), V/V8 (ลาพักร้อน 8ชม.), S/S8 (ลาป่วย 8ชม.), P/P8 (ลากิจ 8ชม.), และลากิจบางส่วนแบบผสม เช่น 6+P2 หรือ 8-16+P2
+    // คืนค่า true หากรับรู้เป็นรหัสลา/หยุดพิเศษแล้วจัดการเรียบร้อย, false หากไม่ใช่ (ให้ผู้เรียกไปตีความเป็นช่วงเวลาทำงานต่อ)
+    // 🚫 วันที่ไม่มีการทำงานจริง (OFF/ลาเต็มวัน) ไม่ควรมีชื่อผู้ทำงานค้างอยู่ในช่อง
+    function clearWorkerNameForNonWorkDay(day) {
+        const el = document.getElementById(`worker-name-${day}`);
+        if (el) el.value = '';
+    }
+
+    function applyLeaveOrSpecialCode(day, rawValue) {
+        const clean = (rawValue || '').trim();
+        if (!clean) return false;
+        const upper = clean.toUpperCase();
+
+        // 1. วันหยุด OFF / O
+        if (upper === 'OFF' || upper === 'O') {
+            document.getElementById(`duty-sh-${day}`).value = 'OFF';
+            clearWorkerNameForNonWorkDay(day); // วันหยุดไม่ควรมีชื่อผู้ทำงาน
+            return true;
+        }
+
+        // 2. ลาเต็มวัน (นับเป็น Duty 8 ชม.): V/V8 = ลาพักร้อน, S/S8 = ลาป่วย, P/P8 = ลากิจ
+        const fullDayLeaveMap = { 'V': 'ลาพักร้อน', 'V8': 'ลาพักร้อน', 'S': 'ลาป่วย', 'S8': 'ลาป่วย', 'P': 'ลากิจ', 'P8': 'ลากิจ' };
+        if (fullDayLeaveMap[upper]) {
+            document.getElementById(`duty-sh-${day}`).value = 'ลาเต็มวัน';
+            document.getElementById(`note-${day}`).value = fullDayLeaveMap[upper];
+            clearWorkerNameForNonWorkDay(day); // วันลาเต็มวันไม่ควรมีชื่อผู้ทำงาน
+            return true;
+        }
+
+        // 3. ลากิจบางส่วนควบกับชั่วโมง/ช่วงเวลาทำงาน เช่น 6+P2 หรือ 8-16+P2
+        if (upper.includes('+')) {
+            const parts = upper.split('+');
+            if (parts[0].includes('-')) {
+                // ส่วนแรกเป็นช่วงเวลา -> ใช้ระบบกระจายช่องอัตโนมัติ (กฎเหล็กเวรดึกยังใช้ได้ตามปกติ)
+                distributeDaySegments(day, parts[0]);
+            } else {
+                document.getElementById(`duty-sh-${day}`).value = parts[0] + " ชม.";
+            }
+            document.getElementById(`note-${day}`).value = "ลากิจ " + parts[1].replace('P', '') + " ชม.";
+            return true;
+        }
+
+        return false;
+    }
+
+    // ⚡ เครื่องมือกระจายชั่วโมงเวรลงช่อง เช้า-บ่าย-ดึก / Duty-OT อัตโนมัติ (เวอร์ชันรองรับ 3 ช่วงเวลาในวันเดียว)
+    // ใช้ทั้งจากการพิมพ์ตรงในตาราง (smartCellInput), ปฏิทินล็อกวัน (applyCalendarBulkFill) และกล่องนำเข้าข้อความ 30 วัน (processBulkTextImport)
+
+    // เติมค่าเข้าช่อง โดยถ้ามีค่าอยู่แล้วจะคั่นด้วยจุลภาคต่อท้าย (ไม่ทับข้อมูลเดิม)
+    function appendToCell(cellId, val) {
+        const el = document.getElementById(cellId);
+        if (!el) return;
+        el.value = el.value ? `${el.value},${val}` : val;
+    }
+
+    // จัดสรร "1 ช่วงเวลา" ลงช่องที่ถูกต้อง — บังคับใช้ 🔒 กฎเหล็กเวรดึกสะสม (ยกเว้นโหมดเภสัชกรพาร์ทไทม์ที่ไม่มีดิวตี้)
+    function placeSegment(day, segRaw) {
+        const clean = segRaw.replace(/\s+/g, '');
+        const mode = document.getElementById('posSelect').value;
+        const isPartTime = (mode === 'pharmacist_parttime'); // 🕐 พาร์ทไทม์: ทุกชั่วโมงคือ OT ล้วนๆ ไม่มีดิวตี้
+
+        // ช่วงเวลายาวมาตรฐานที่ต้องแตกเป็น Duty + OT อัตโนมัติ (เดิม) — recursion จะเช็คโหมดพาร์ทไทม์ซ้ำในแต่ละช่วงย่อยเองอยู่แล้ว
+        const comboMap = {
+            '8-20': ['8-16', '16-20'],
+            '9-20': ['9-17', '17-20'],
+            '20-8': ['20-24', '0-8']
+        };
+        if (comboMap[clean]) {
+            comboMap[clean].forEach(seg => placeSegment(day, seg));
+            return;
+        }
+
+        // === 🔒 กฎเหล็กเวรดึกสะสม: 20-24 เด้งเข้า OT เสมอ, 0-8 เด้งเข้า Duty เสมอ (ใช้เฉพาะโหมดที่มีดิวตี้) ===
+        if (!isPartTime) {
+            if (clean === '20-24') {
+                appendToCell(`ot-dk-${day}`, clean);
+                return;
+            }
+            if (clean === '0-8') {
+                appendToCell(`duty-dk-${day}`, clean);
+                return;
+            }
+        } else if (clean === '20-24' || clean === '0-8') {
+            // พาร์ทไทม์: ทั้ง 20-24 และ 0-8 ล้วนคือ OT โซนดึกเหมือนกัน ไม่ต้องแยกดิวตี้
+            appendToCell(`ot-dk-${day}`, clean);
+            return;
+        }
+
+        const parsed = parseShiftHours(clean);
+        if (!parsed) {
+            // แยกวิเคราะห์ไม่ได้ (เช่นข้อความอิสระ) -> ใส่ในช่อง Duty-เช้าไว้ก่อนเพื่อไม่ให้ข้อมูลหาย (พาร์ทไทม์ใส่ช่อง OT-เช้าแทน)
+            appendToCell(isPartTime ? `ot-sh-${day}` : `duty-sh-${day}`, segRaw);
+            return;
+        }
+
+        const start = parsed.start, end = parsed.end;
+
+        // ช่วงเวลามาตรฐานที่รู้จัก (ใช้เฉพาะโหมดที่มีดิวตี้)
+        if (!isPartTime) {
+            if ((start === 8 && end === 16) || (start === 9 && end === 17)) {
+                appendToCell(`duty-sh-${day}`, clean);
+                return;
+            }
+            if ((start === 16 && end === 20) || (start === 17 && end === 20)) {
+                appendToCell(`ot-ba-${day}`, clean);
+                return;
+            }
+        }
+
+        // จัดกลุ่มตามช่วงเวลาของวัน (เช้า/บ่าย/ดึก) แบบทั่วไป
+        let bucket;
+        const isNight = (start >= 20 || end <= 8);
+        if (isNight) bucket = 'dk';
+        else if (start >= 6 && start < 14) bucket = 'sh';
+        else bucket = 'ba';
+
+        if (isPartTime) {
+            // เภสัชกรพาร์ทไทม์: ทุกชั่วโมงลงช่อง OT ตามช่วงเวลาของวัน ไม่แตะช่อง Duty เลย
+            appendToCell(`ot-${bucket}-${day}`, clean);
+            return;
+        }
+
+        const dutyId = `duty-${bucket}-${day}`;
+        const otId = `ot-${bucket}-${day}`;
+
+        // ถ้าช่อง Duty ของช่วงนั้นว่างอยู่ ให้ถือเป็นเวรปกติก่อน ถ้ามีแล้วถือว่าเป็นชั่วโมงเกิน (OT)
+        if (!document.getElementById(dutyId).value) {
+            appendToCell(dutyId, clean);
+        } else {
+            appendToCell(otId, clean);
+        }
+    }
+
+    // กระจาย "หลายช่วงเวลาในวันเดียว" (คั่นด้วยจุลภาค , หรือ / หรือ ;) ไม่เด้งหลุด ไม่ error
+    function distributeDaySegments(day, rawInput) {
+        if (!rawInput || !rawInput.trim()) return false;
+        const segments = rawInput.split(/[,;/]+/).map(s => s.trim()).filter(Boolean);
+        if (segments.length === 0) return false;
+        segments.forEach(seg => placeSegment(day, seg));
+        return true;
+    }
+
+    // 🗑️ ล้างข้อมูลเวลา/หมายเหตุทั้งหมดของวันนั้นในคลิกเดียว (ใช้เมื่อต้องการลงข้อมูลใหม่ทั้งวันแบบสะอาด)
+    // ไม่ลบชื่อผู้ทำงาน เพราะปกติเป็นชื่อเจ้าของฟอร์มที่ไม่ควรต้องพิมพ์ใหม่ทุกครั้ง
+    // 👀 สลับการซ่อน/แสดงยอดเงินรวม และชื่อผู้ขออนุมัติ (สำหรับกรณีไม่อยากเปิดเผยข้อมูลอ่อนไหวตอนแชร์/พิมพ์)
+    function toggleHideElements() {
+        const cbAmount = document.getElementById('cbHideAmount');
+        const cbSig = document.getElementById('cbHideSigName');
+        document.body.classList.toggle('hide-amount-active', cbAmount ? cbAmount.checked : false);
+        document.body.classList.toggle('hide-sig-active', cbSig ? cbSig.checked : false);
+    }
+
+    // 🧹 ล้างตารางเวรทั้ง 31 วันเพื่อขึ้นเดือนใหม่ (คงโปรไฟล์/เรทราคา/เป้าหมาย Duty ไว้เหมือนเดิม ไม่ต้องตั้งค่าใหม่ทุกเดือน)
+    function startNewMonth() {
+        const ok = confirm(
+            '⚠️ กำลังจะล้างข้อมูลเวรปฏิบัติงานทั้ง 31 วันในตาราง เพื่อขึ้นเดือนใหม่\n' +
+            '(โปรไฟล์ชื่อ/รหัส/แผนก, โหมดคำนวณ, เรทราคา จะยังคงเดิมไม่ถูกลบ)\n\n' +
+            'ยืนยันการดำเนินการนี้หรือไม่?'
+        );
+        if (!ok) return;
+        for (let d = 1; d <= 31; d++) {
+            clearDayTimeCells(d);
+            manualCalculateRow(d);
+        }
+        alert('ล้างข้อมูลตารางเรียบร้อยแล้ว เริ่มต้นใช้งานเดือนใหม่ได้เลยครับ 🧹');
+    }
+
+    function confirmClearDay(day) {
+        const ok = confirm(
+            `ต้องการล้างข้อมูลเวลา Duty/OT และหมายเหตุทั้งหมดของวันที่ ${day} หรือไม่?\n` +
+            `(ชื่อผู้ทำงานจะไม่ถูกลบ)\n\n` +
+            `การกระทำนี้ยกเลิกไม่ได้ (ยกเว้นจะพิมพ์ข้อมูลกลับเข้าไปเอง)`
+        );
+        if (!ok) return;
+        clearDayTimeCells(day);
+        manualCalculateRow(day);
+    }
+
+    // ➕ เพิ่มช่วงเวลา/รหัสลาเพิ่มเติมให้วันนั้นๆ โดย "ไม่แตะ/ไม่ลบ" ข้อมูลเดิมในวันเดียวกันเลย
+    // แก้ปัญหา: พิมพ์ตรงในช่องที่มีข้อมูลอยู่แล้วโดยไม่ใส่จุลภาคเอง จะทำให้ข้อมูลเดิมถูกเขียนทับหายไป
+    // ปุ่มนี้จึงเปิดช่องทางที่ปลอดภัย 100% สำหรับกรณีต้องรับเวรคนอื่น/ยกเวรเพิ่มเติมในวันที่ลงข้อมูลไปแล้ว ไม่จำกัดจำนวนครั้ง
+    function promptAddShift(day) {
+        const input = prompt(
+            `เพิ่มช่วงเวลา/รหัสลาเพิ่มเติมสำหรับวันที่ ${day}\n` +
+            `(ของเดิมในวันนี้จะไม่ถูกลบ เพิ่มได้ไม่จำกัดจำนวนครั้ง)\n\n` +
+            `ตัวอย่าง: 12-14  หรือ  13-20  หรือ  V\n` +
+            `ใส่ได้หลายช่วงพร้อมกัน คั่นด้วยจุลภาค (,)`,
+            ''
+        );
+        if (input === null) return; // ผู้ใช้กดยกเลิก ไม่ทำอะไรเลย
+        const trimmed = input.trim();
+        if (!trimmed) return;
+
+        // จำค่าที่พิมพ์ไว้เป็นคำแนะนำอัตโนมัติด้วยเช่นกัน (เหมือนช่องพิมพ์ปกติ)
+        addSuggestion(SUGG_KEYS.time, 'timeSuggestions', trimmed);
+
+        // กระจายลงช่องตามกฎเดิมทั้งหมด (กฎเหล็กเวรดึก, มาตรฐาน sh/ba/dk ฯลฯ) โดยไม่เคลียร์ช่องเดิมก่อนเด็ดขาด
+        distributeDaySegments(day, trimmed);
+        manualCalculateRow(day);
+    }
+
+    // ทำงานเมื่อผู้ใช้พิมพ์เสร็จแล้วออกจากช่อง (onchange) — ตรวจจับรูปแบบหลายช่วงเวลา หรือกฎเหล็กเวรดึก แล้วเด้งจัดช่องให้ใหม่
+    // ใช้ onchange (ไม่ใช่ oninput) เพื่อไม่ให้รบกวนขณะกำลังพิมพ์อยู่ (กันปัญหา "เด้งหลุด" ระหว่างพิมพ์)
+    // ⏱️ ตัวช่วยดักจับการพิมพ์แบบ debounce — ใช้เป็น "ตาข่ายนิรภัย" สำรองจาก onchange
+    // เหตุผล: บนมือถือ/เว็บวิวบางตัว เหตุการณ์ onchange (blur) อาจไม่ยิงแน่นอนเวลาผู้ใช้แตะช่องอื่นเร็วๆ
+    // จึงให้ตรวจจับอัตโนมัติหลังผู้ใช้ "หยุดพิมพ์ค้างไว้ 500 มิลลิวินาที" แทน เพื่อความชัวร์ทุกแพลตฟอร์ม
+    const cellDebounceTimers = {};
+
+    function handleCellInput(day, cellId) {
+        manualCalculateRow(day); // อัปเดตยอดรวมแบบเรียลไทม์ทุกครั้งที่พิมพ์ (ไม่รบกวนการพิมพ์)
+
+        if (cellDebounceTimers[cellId]) clearTimeout(cellDebounceTimers[cellId]);
+        cellDebounceTimers[cellId] = setTimeout(() => {
+            smartCellInput(day, cellId);
+        }, 500);
+    }
+
+    function smartCellInput(day, cellId) {
+        if (cellDebounceTimers[cellId]) { clearTimeout(cellDebounceTimers[cellId]); delete cellDebounceTimers[cellId]; }
+        const el = document.getElementById(cellId);
+        if (!el) return;
+        const val = el.value.trim();
+
+        if (val) {
+            // 🧠 จำค่าที่พิมพ์ไว้เป็นคำแนะนำอัตโนมัติในครั้งถัดไปเสมอ ไม่ว่าจะเป็นช่วงเวลาปกติ, รหัสลา, หรือเวรแปลกๆ เช่น 13-20
+            // (ยกเว้น "ลาเต็มวัน" ซึ่งเป็นข้อความที่ระบบเขียนกลับเข้าไปเอง ไม่ใช่สิ่งที่ผู้ใช้พิมพ์จริง จึงไม่ควรถูกจำไว้)
+            if (val !== 'ลาเต็มวัน') {
+                addSuggestion(SUGG_KEYS.time, 'timeSuggestions', val);
+            }
+
+            // ตรวจสอบก่อนว่าเป็นรหัสลา/หยุดพิเศษหรือไม่ (V, S, P, OFF, หรือลากิจบางส่วนแบบผสม เช่น 6+P2)
+            const upperVal = val.toUpperCase();
+            const isLeaveCode = upperVal === 'OFF' || upperVal === 'O' ||
+                ['V', 'V8', 'S', 'S8', 'P', 'P8'].includes(upperVal) || upperVal.includes('+');
+
+            if (isLeaveCode) {
+                clearDayTimeCells(day);
+                applyLeaveOrSpecialCode(day, val);
+                manualCalculateRow(day);
+                return;
+            }
+
+            const looksLikeTimeList = /^[\d:.\-,;\/\s]+$/.test(val);
+            const needsRedistribute = looksLikeTimeList && (val.includes(',') || val.includes(';') || val.includes('/') || val === '20-24' || val === '0-8' || val === '8-20' || val === '9-20' || val === '20-8');
+
+            if (needsRedistribute) {
+                el.value = '';
+                distributeDaySegments(day, val);
+            }
+        }
+
+        manualCalculateRow(day);
+    }
+
+    // ⚡ ฟังก์ชันไฮไลท์เด็ด: ลงข้อมูลซ้ำแบบระบุวันสไตล์ Google Calendar พร้อมแตกโครงสร้าง Duty / OT อัตโนมัติ
+    function applyCalendarBulkFill() {
+        const timeInput = document.getElementById('quickTimeInput').value;
+        let targetDays = [];
+        for(let d=1; d<=31; d++) {
+            if(document.getElementById(`check-day-${d}`).checked) targetDays.push(d);
+        }
+
+        if(targetDays.length === 0) {
+            alert('กรุณาเลือกวันที่ต้องการลงเวลาบนปฏิทินจำลองก่อนนะครับ (เลือกซ้ำได้หลายวัน)');
+            return;
+        }
+
+        addSuggestion(SUGG_KEYS.time, 'timeSuggestions', timeInput); // 🧠 จำรูปแบบเวลานี้ไว้ใช้ครั้งถัดไป
+
+        targetDays.forEach(day => {
+            document.getElementById(`duty-sh-${day}`).value = '';
+            document.getElementById(`duty-ba-${day}`).value = '';
+            document.getElementById(`duty-dk-${day}`).value = '';
+            document.getElementById(`ot-sh-${day}`).value = '';
+            document.getElementById(`ot-ba-${day}`).value = '';
+            document.getElementById(`ot-dk-${day}`).value = '';
+            document.getElementById(`note-${day}`).value = '';
+
+            distributeDaySegments(day, timeInput);
+            manualCalculateRow(day);
+        });
+    }
+
+    // 🔁 ธงป้องกันการเรียก calculateGrandTotals() ซ้อนกันเวลาโยกชั่วโมง Duty เกินเป้าหมายลงตารางจริง
+    // (redistributeDutyExcessToOT จะเรียก manualCalculateRow หลายแถวรัวๆ ระหว่างที่ calculateGrandTotals กำลังทำงานอยู่แล้ว)
+    let suppressGrandTotalsRecalc = false;
+
+    // คำนวณวิเคราะห์รายแถว (จัดการกฎหัก/ไม่หักพักรายวันตามโหมดงาน)
+    function manualCalculateRow(day) {
+        const mode = document.getElementById('posSelect').value;
+        const dutyShVal = document.getElementById(`duty-sh-${day}`).value;
+        const hideZeroEl = document.getElementById('cbHideZero');
+        const hideZero = hideZeroEl ? hideZeroEl.checked : false;
+
+        // ถ้าเป็นวันลาเต็มวัน (V/S/P) ให้นับเป็น Duty 8 ชั่วโมงตามเกณฑ์ ไม่ต้องคิดชั่วโมงทำงานจริง/ไม่หักพัก
+        if (dutyShVal === "ลาเต็มวัน") {
+            document.getElementById(`break-duty-${day}`).innerText = "-";
+            document.getElementById(`sum-duty-${day}`).innerText = "8";
+            document.getElementById(`break-ot-${day}`).innerText = "-";
+            document.getElementById(`sum-ot-${day}`).innerText = hideZero ? "" : "0";
+            if (!suppressGrandTotalsRecalc) calculateGrandTotals();
+            return;
+        }
+
+        // ⚠️ สำคัญ: ต้องหักเวลาพัก "แยกเป็นรายช่วง/รายคอลัมน์" ไม่ใช่รวมทั้งวันเป็นก้อนเดียว
+        // เพราะวันเดียวกันอาจมีทั้งเวรกลางวัน (ต้องหักพัก) และเวรกลางคืน (ไม่ต้องหักพัก) ปนกันอยู่
+        // เช่น 8-16 (เช้า เกิน 6 ชม. → หัก 1 ชม.) กับ 0-8 (ดึก → ไม่หัก) ในวันเดียวกัน
+        function sumColumnsWithBreak(prefixes) {
+            let totalHrs = 0;
+            let totalBreak = 0;
+            prefixes.forEach(prefix => {
+                const el = document.getElementById(`${prefix}-${day}`);
+                const v = el ? el.value : '';
+                const p = parseShiftHours(v);
+                if (p) {
+                    let segHrs = p.hours;
+                    // บังคับใช้เกณฑ์การหักเวลาพักรายช่วง: เกิน 6 ชม. และไม่ใช่ช่วงดึก
+                    if (mode === 'assistant' && segHrs > 6 && !p.isNight) {
+                        totalBreak += 1;
+                        segHrs -= 1;
+                    }
+                    totalHrs += Math.max(0, segHrs);
+                } else if (v.includes("ชม.")) {
+                    totalHrs += parseFloat(v) || 0; // ดึงค่าจากตัวประมวลผลลากิจบางส่วน
+                }
+            });
+            return { totalHrs, totalBreak };
+        }
+
+        const dutyResult = sumColumnsWithBreak(['duty-sh', 'duty-ba', 'duty-dk']);
+        const otResult = sumColumnsWithBreak(['ot-sh', 'ot-ba', 'ot-dk']);
+
+        const finalDuty = Math.max(0, dutyResult.totalHrs);
+        const finalOt = Math.max(0, otResult.totalHrs);
+
+        document.getElementById(`break-duty-${day}`).innerText = dutyResult.totalBreak > 0 ? `-${dutyResult.totalBreak}` : "-";
+        document.getElementById(`sum-duty-${day}`).innerText = (hideZero && finalDuty === 0) ? "" : finalDuty;
+
+        document.getElementById(`break-ot-${day}`).innerText = otResult.totalBreak > 0 ? `-${otResult.totalBreak}` : "-";
+        document.getElementById(`sum-ot-${day}`).innerText = (hideZero && finalOt === 0) ? "" : finalOt;
+
+        if (!suppressGrandTotalsRecalc) calculateGrandTotals();
+    }
+
+    // 🔧 แปลงตัวเลขชั่วโมงเป็นข้อความสั้นๆ สำหรับใส่กลับลงช่วงเวลา (ตัด .0 ทิ้ง, ทศนิยมอื่นคงไว้)
+    function formatHourNum(n) {
+        const rounded = Math.round(n * 100) / 100;
+        return (rounded % 1 === 0) ? String(rounded) : String(rounded);
+    }
+
+    // ⚖️ โยกชั่วโมง Duty ส่วนเกินเป้าหมายไปเป็น OT "จริง" ในตาราง (ไม่ใช่แค่ตัวเลขสรุปด้านล่าง)
+    // เพื่อให้ผลรวมชั่วโมงของทั้ง 30-31 วันในตาราง เท่ากับยอดสรุป Duty/OT ท้ายตารางเป๊ะทุกครั้ง
+    // 🔒 กฎเหล็ก: แตะได้เฉพาะช่วงเวลากลางวัน (duty-sh / duty-ba, 08:00-20:00) ห้ามแตะ duty-dk (0-8) หรือ ot-dk (20-24) เด็ดขาด
+    function redistributeDutyExcessToOT(excessNeeded) {
+        let remaining = excessNeeded;
+        if (remaining <= 0) return 0;
+
+        suppressGrandTotalsRecalc = true;
+        try {
+            // ไล่ตั้งแต่วันสุดท้ายของเดือนย้อนกลับมา จนกว่าจะโยกครบตามจำนวนที่เกินเป้าหมาย
+            for (let d = 31; d >= 1 && remaining > 0.001; d--) {
+                const dutyShVal = document.getElementById(`duty-sh-${d}`).value;
+                if (dutyShVal === "ลาเต็มวัน") continue; // วันลาเต็มวัน ห้ามแตะ
+
+                // ลองทั้งช่อง duty-ba (บ่าย ใกล้ OT มากกว่า) ก่อน แล้วค่อย duty-sh (เช้า)
+                const buckets = ['ba', 'sh'];
+                for (const bucket of buckets) {
+                    if (remaining <= 0.001) break;
+                    const dutyCellId = `duty-${bucket}-${d}`;
+                    const dutyEl = document.getElementById(dutyCellId);
+                    if (!dutyEl) continue;
+                    const raw = dutyEl.value.trim();
+                    if (!raw || raw.includes(',')) continue; // ข้ามช่องว่าง/หลายช่วงเวลาในเซลล์เดียว (ซับซ้อนเกินจะโยกอย่างปลอดภัย)
+
+                    const parsed = parseShiftHours(raw);
+                    if (!parsed || parsed.isNight) continue; // ต้องเป็นช่วงกลางวันล้วนๆ เท่านั้น (08:00-20:00)
+                    if (parsed.start < 8 || parsed.end > 20 || parsed.end <= parsed.start) continue;
+
+                    const segLen = parsed.end - parsed.start;
+                    const take = Math.min(remaining, segLen);
+                    const newEnd = parsed.end - take;
+
+                    // 1) หดช่วง Duty ลง (หรือลบทิ้งถ้าโยกหมดทั้งช่วง)
+                    if (newEnd <= parsed.start + 0.001) {
+                        dutyEl.value = '';
+                    } else {
+                        dutyEl.value = `${formatHourNum(parsed.start)}-${formatHourNum(newEnd)}`;
+                    }
+
+                    // 2) ใส่ส่วนที่โยกออก (newEnd ถึง end เดิม) ลงช่อง OT ตามโซนเวลาของมันเอง (sh/ba ตามกฎเดิมของโปรแกรม)
+                    const freedStart = newEnd, freedEnd = parsed.end;
+                    const freedBucket = (freedStart >= 6 && freedStart < 14) ? 'sh' : 'ba';
+                    const otCellId = `ot-${freedBucket}-${d}`;
+                    const otEl = document.getElementById(otCellId);
+                    if (otEl) {
+                        const otRaw = otEl.value.trim();
+                        const otParsed = !otRaw.includes(',') ? parseShiftHours(otRaw) : null;
+                        if (otRaw && otParsed && Math.abs(otParsed.start - freedEnd) < 0.001) {
+                            // ช่วง OT เดิมต่อกันพอดีกับส่วนที่โยกออกมา -> รวมเป็นช่วงเดียว
+                            otEl.value = `${formatHourNum(freedStart)}-${formatHourNum(otParsed.end)}`;
+                        } else if (!otRaw) {
+                            otEl.value = `${formatHourNum(freedStart)}-${formatHourNum(freedEnd)}`;
+                        } else {
+                            otEl.value = `${otRaw},${formatHourNum(freedStart)}-${formatHourNum(freedEnd)}`;
+                        }
+                    }
+
+                    remaining -= take;
+                    manualCalculateRow(d); // อัปเดตช่องหักพัก/ยอดรวมของแถวนี้ทันที (ไม่เรียก calculateGrandTotals ซ้ำเพราะติดธงไว้)
+                }
+            }
+        } finally {
+            suppressGrandTotalsRecalc = false;
+        }
+
+        return excessNeeded - remaining; // จำนวนชั่วโมงที่โยกได้จริง (อาจน้อยกว่าที่ขอ ถ้าช่วงกลางวันในตารางไม่พอให้โยก)
+    }
+
+    // คำนวณสรุปเงินและชั่วโมงรวมท้ายใบงานทั้งหมดแบบไดนามิก
+    function calculateGrandTotals() {
+        const mode = document.getElementById('posSelect').value;
+        
+        let totalDuty = 0;
+        let totalOt = 0;
+        let totalLeaveHours = 0;
+        
+        // นับชั่วโมงสะสมสุทธิจากตาราง
+        for (let d = 1; d <= 31; d++) {
+            const dutySh = document.getElementById(`duty-sh-${d}`).value;
+            const note = document.getElementById(`note-${d}`).value;
+
+            if (dutySh === "ลาเต็มวัน") {
+                totalLeaveHours += 8; // ลาเต็มวันสะสมวันละ 8 ชั่วโมง (นับรวมเป็น Duty ด้วย)
+            } else if (note.includes("ลากิจ")) {
+                totalLeaveHours += parseFloat(note.replace(/[^0-9]/g, '')) || 0; // ดึงชั่วโมงลาบางส่วนสะสม
+            }
+
+            // ไม่ว่าจะเป็นวันลาเต็มวัน วันลากิจบางส่วน หรือวันเวรปกติ ให้รวมชั่วโมง Duty/OT ของแถวนั้นเข้ายอดรวมเสมอ
+            // (ชั่วโมง Duty ของวันลาเต็มวันถูกตั้งเป็น 8 ไว้แล้วใน manualCalculateRow)
+            totalDuty += parseFloat(document.getElementById(`sum-duty-${d}`).innerText) || 0;
+            totalOt += parseFloat(document.getElementById(`sum-ot-${d}`).innerText) || 0;
+        }
+
+        // === 🎯 ปรับเป้าหมายชั่วโมง Duty และแปลงส่วนเกินเป็นเงิน OT อัตโนมัติ (ไม่ใช้กับเภสัชกรพาร์ทไทม์ เพราะไม่มีดิวตี้) ===
+        const dutyTargetEl = document.getElementById('dutyTargetHours');
+        const dutyTarget = dutyTargetEl ? (parseFloat(dutyTargetEl.value) || 0) : 0;
+
+        // 🎯 ถ้า Duty รวมเกินเป้าหมาย ให้ "โยกชั่วโมงจริง" จาก Duty ลง OT ในตาราง (แก้ที่ต้นทาง)
+        // แทนที่จะปรับแค่ตัวเลขสรุปด้านล่างเฉยๆ เพื่อให้ผลรวมชั่วโมงในตารางตรงกับยอดสรุปเป๊ะทุกครั้ง
+        let convertedOtHours = 0;
+        if (mode !== 'pharmacist_parttime' && dutyTarget > 0 && totalDuty > dutyTarget) {
+            const needed = totalDuty - dutyTarget;
+            convertedOtHours = redistributeDutyExcessToOT(needed);
+
+            // นับยอดรวมใหม่จากตารางอีกครั้งหลังโยกจริง (กรณีโยกได้ไม่ครบตามที่ต้องการ เช่น ไม่มีช่วงกลางวันพอให้โยก)
+            totalDuty = 0;
+            totalOt = 0;
+            for (let d = 1; d <= 31; d++) {
+                totalDuty += parseFloat(document.getElementById(`sum-duty-${d}`).innerText) || 0;
+                totalOt += parseFloat(document.getElementById(`sum-ot-${d}`).innerText) || 0;
+            }
+        }
+
+        const displayDuty = totalDuty;
+        const displayOt = totalOt;
+
+        document.getElementById('totalDutySum').innerText = displayDuty;
+        document.getElementById('totalOtSum').innerText = displayOt;
+
+        document.getElementById('textFinalDutyHours').innerText = displayDuty;
+        document.getElementById('textFinalOtHours').innerText = displayOt;
+
+        let totalAmount = 0;
+        const expBlock = document.getElementById('calculationExplanationBlock');
+
+        // หมายเหตุ: ตอนนี้ชั่วโมงที่โยกจาก Duty ไปเกินเป้าหมายถูกใส่ลงช่อง OT ของตารางจริงแล้ว (ผ่าน redistributeDutyExcessToOT)
+        // ดังนั้นการคำนวณเงิน OT ด้านล่างซึ่งอ่านค่าตรงจากช่อง ot-sh/ot-ba/ot-dk ของตาราง จะรวมชั่วโมงที่โยกมานี้ไว้ให้อัตโนมัติอยู่แล้ว ไม่ต้องบวกซ้ำ
+        if (mode === 'pharmacist' || mode === 'pharmacist_parttime') {
+            const rateSet = rates[mode]; // เภสัชกรประจำและพาร์ทไทม์ใช้สูตรเดียวกัน ต่างกันแค่ชุดเรทราคา
+            let otDayHours = 0;
+            let otNightHours = 0;
+
+            for(let d=1; d<=31; d++) {
+                let shP = parseShiftHours(document.getElementById(`ot-sh-${d}`).value);
+                let baP = parseShiftHours(document.getElementById(`ot-ba-${d}`).value);
+                let dkP = parseShiftHours(document.getElementById(`ot-dk-${d}`).value);
+
+                if(shP) otDayHours += shP.hours;
+                if(baP) otDayHours += baP.hours;
+                if(dkP) otNightHours += dkP.hours;
+            }
+
+            let sumDayMoney = otDayHours * rateSet.otDayRate;
+            let sumNightMoney = otNightHours * rateSet.otNightRate;
+            totalAmount = sumDayMoney + sumNightMoney;
+
+            const modeNote = mode === 'pharmacist_parttime'
+                ? `<p>• 🕐 โหมดเภสัชกรพาร์ทไทม์: คิดเฉพาะชั่วโมง OT เท่านั้น ไม่มีการนับ Duty</p>`
+                : '';
+
+            expBlock.innerHTML = `
+                ${modeNote}
+                <p>• ค่าชั่วโมง OT โซนกลางวัน/บ่าย: <strong>${otDayHours}</strong> ชม. × ${rateSet.otDayRate} บาท = ${sumDayMoney.toLocaleString()} บ.</p>
+                <p>• ค่าชั่วโมง OT โซนเวรดึก (หลัง 20:00): <strong>${otNightHours}</strong> ชม. × ${rateSet.otNightRate} บาท = ${sumNightMoney.toLocaleString()} บ.</p>
+                ${convertedOtHours > 0 ? `<p>• 🎯 ชั่วโมง Duty เกินเป้าหมาย (${dutyTarget} ชม.): <strong>${convertedOtHours}</strong> ชม. ถูกโยกลงตารางเป็น OT แล้ว (รวมอยู่ในยอด OT ด้านบนนี้แล้ว)</p>` : ''}
+                <p>• ชั่วโมงรวมวันลาสะสมสะท้อนในระบบ: <strong>${totalLeaveHours}</strong> ชั่วโมง</p>
+            `;
+        } 
+        else {
+            let nightShiftDaysCount = 0;
+            for(let d=1; d<=31; d++) {
+                let dkVal = document.getElementById(`duty-dk-${d}`).value;
+                let otdkVal = document.getElementById(`ot-dk-${d}`).value;
+                if(dkVal || otdkVal) nightShiftDaysCount++;
+            }
+
+            let otMoney = totalOt * rates.assistant.otFlatRate;
+            let nightBonus = nightShiftDaysCount * rates.assistant.nightBonusRate;
+            totalAmount = otMoney + nightBonus;
+
+            expBlock.innerHTML = `
+                <p>• ค่าชั่วโมง OT สุทธิสะสม: <strong>${totalOt}</strong> ชม. × ${rates.assistant.otFlatRate} บาท = ${otMoney.toLocaleString()} บ.</p>
+                <p>• เงินบวกพิเศษค่าเวรดึก (ผู้ช่วยฯ): <strong>${nightShiftDaysCount}</strong> คืน × ${rates.assistant.nightBonusRate} บาท = ${nightBonus.toLocaleString()} บ.</p>
+                ${convertedOtHours > 0 ? `<p>• 🎯 ชั่วโมง Duty เกินเป้าหมาย (${dutyTarget} ชม.): <strong>${convertedOtHours}</strong> ชม. ถูกโยกลงตารางเป็น OT แล้ว (รวมอยู่ในยอด OT ด้านบนนี้แล้ว)</p>` : ''}
+                <p>• ชั่วโมงรวมวันลาสะสมสะท้อนในระบบ: <strong>${totalLeaveHours}</strong> ชั่วโมง</p>
+            `;
+        }
+
+        document.getElementById('textFinalAmount').innerText = totalAmount.toLocaleString();
+
+        if (typeof scheduleAutosave === 'function') scheduleAutosave();
+    }
+
+    function reCalculateAllTable() {
+        for (let d = 1; d <= 31; d++) {
+            manualCalculateRow(d);
+        }
+    }
+
+    // ============================================================
+    // 📋 คัดลอกสรุปยอดส่งไลน์ (เป็นหลักฐาน)
+    // ============================================================
+    function buildLineSummaryText() {
+        const name = document.getElementById('inputName').value || '-';
+        const empId = document.getElementById('inputEmpId').value || '-';
+        const dept = document.getElementById('inputDept').value || '-';
+        const posText = document.getElementById('lblTemplatePosition').value || '-';
+        const duty = document.getElementById('textFinalDutyHours').innerText;
+        const ot = document.getElementById('textFinalOtHours').innerText;
+        const amount = document.getElementById('textFinalAmount').innerText;
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+
+        return [
+            '📋 สรุปค่าตอบแทนการอยู่เวร',
+            '——————————————',
+            `ชื่อ: ${name}`,
+            `รหัสพนักงาน: ${empId}`,
+            `แผนก/ตำแหน่ง: ${dept} (${posText})`,
+            '——————————————',
+            `รวมชั่วโมง Duty: ${duty} ชม.`,
+            `รวมชั่วโมง OT สุทธิ: ${ot} ชม.`,
+            `💰 ยอดเงินรวม: ${amount} บาท`,
+            '——————————————',
+            `สรุป ณ วันที่ ${dateStr}`
+        ].join('\n');
+    }
+
+    function fallbackCopyText(text, onDone) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        try { document.execCommand('copy'); } catch (e) { /* เบราว์เซอร์บางตัวไม่รองรับ ปล่อยผ่าน */ }
+        document.body.removeChild(ta);
+        if (onDone) onDone();
+    }
+
+    function copyLineSummary() {
+        const text = buildLineSummaryText();
+        const btn = document.getElementById('btnCopyLine');
+        const showDone = () => {
+            if (!btn) return;
+            const original = btn.innerText;
+            btn.innerText = '✅ คัดลอกแล้ว!';
+            setTimeout(() => { btn.innerText = original; }, 1800);
+        };
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(showDone).catch(() => fallbackCopyText(text, showDone));
+        } else {
+            fallbackCopyText(text, showDone);
+        }
+    }
+
+    // ============================================================
+    // 💾 Export / 📂 Import ข้อมูลทั้งชุด (โปรไฟล์ + ตารางเวร + เรทราคา + เป้าหมาย Duty)
+    // ============================================================
+    function collectAllStateForExport() {
+        const days = {};
+        for (let d = 1; d <= 31; d++) {
+            days[d] = {
+                dutySh: document.getElementById(`duty-sh-${d}`).value,
+                dutyBa: document.getElementById(`duty-ba-${d}`).value,
+                dutyDk: document.getElementById(`duty-dk-${d}`).value,
+                otSh: document.getElementById(`ot-sh-${d}`).value,
+                otBa: document.getElementById(`ot-ba-${d}`).value,
+                otDk: document.getElementById(`ot-dk-${d}`).value,
+                workerName: document.getElementById(`worker-name-${d}`).value,
+                note: document.getElementById(`note-${d}`).value
+            };
+        }
+        return {
+            fileType: 'otcalc_export',
+            version: 1,
+            exportedAt: new Date().toISOString(),
+            profile: {
+                name: document.getElementById('inputName').value,
+                empId: document.getElementById('inputEmpId').value,
+                dept: document.getElementById('inputDept').value,
+                mode: document.getElementById('posSelect').value,
+                dutyTarget: document.getElementById('dutyTargetHours').value,
+                month: document.getElementById('inputMonth').value,
+                yearCE: document.getElementById('inputYearCE').value
+            },
+            rates: JSON.parse(JSON.stringify(rates)),
+            days: days
+        };
+    }
+
+    function exportDataToFile() {
+        const data = collectAllStateForExport();
+        const json = JSON.stringify(data, null, 2);
+        const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+
+        const nameSlug = (document.getElementById('inputName').value || 'ผู้ใช้').trim().replace(/\s+/g, '_');
+        const now = new Date();
+        const ymd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `OTData_${nameSlug}_${ymd}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function applyImportedState(data) {
+        if (!data || typeof data !== 'object') throw new Error('invalid_data');
+
+        if (data.profile) {
+            if (data.profile.mode) {
+                document.getElementById('posSelect').value = data.profile.mode;
+            }
+            switchMode(); // เจนช่องเรทราคาตามโหมดก่อน แล้วค่อยเติมค่าย้อนหลัง
+
+            if (data.profile.name !== undefined) document.getElementById('inputName').value = data.profile.name;
+            if (data.profile.empId !== undefined) document.getElementById('inputEmpId').value = data.profile.empId;
+            if (data.profile.dept !== undefined) document.getElementById('inputDept').value = data.profile.dept;
+            if (data.profile.dutyTarget !== undefined) document.getElementById('dutyTargetHours').value = data.profile.dutyTarget;
+            if (data.profile.month !== undefined) document.getElementById('inputMonth').value = data.profile.month;
+            if (data.profile.yearCE !== undefined) document.getElementById('inputYearCE').value = data.profile.yearCE;
+        }
+
+        if (data.rates) {
+            // ผสานเข้ากับโครงสร้าง rates ปัจจุบันแบบตรงคีย์ ไม่ทับทั้งก้อนเผื่อไฟล์เก่ามีคีย์ไม่ครบ
+            Object.keys(data.rates).forEach(modeKey => {
+                if (rates[modeKey]) Object.assign(rates[modeKey], data.rates[modeKey]);
+            });
+            switchMode(); // เจนช่องเรทราคาใหม่อีกครั้งให้ตรงกับค่าที่นำเข้ามา
+        }
+
+        if (data.days) {
+            for (let d = 1; d <= 31; d++) {
+                clearDayTimeCells(d);
+                const wn = document.getElementById(`worker-name-${d}`);
+                if (wn) wn.value = '';
+
+                const dayData = data.days[d];
+                if (!dayData) continue;
+
+                document.getElementById(`duty-sh-${d}`).value = dayData.dutySh || '';
+                document.getElementById(`duty-ba-${d}`).value = dayData.dutyBa || '';
+                document.getElementById(`duty-dk-${d}`).value = dayData.dutyDk || '';
+                document.getElementById(`ot-sh-${d}`).value = dayData.otSh || '';
+                document.getElementById(`ot-ba-${d}`).value = dayData.otBa || '';
+                document.getElementById(`ot-dk-${d}`).value = dayData.otDk || '';
+                if (wn) wn.value = dayData.workerName || '';
+                document.getElementById(`note-${d}`).value = dayData.note || '';
+            }
+        }
+
+        // รีเซ็ตตัวติดตาม "ชื่อที่เคยหยอดอัตโนมัติ" ก่อน sync เพื่อไม่ให้ไปทับชื่อผู้ทำงานที่นำเข้ามาจากไฟล์จริงๆ
+        // (ช่องที่ว่างจากไฟล์นำเข้าจะยังได้รับการหยอดชื่อโปรไฟล์ปัจจุบันให้ตามปกติ)
+        lastAutoFilledWorkerName = '\u0000__IMPORT_RESET__\u0000';
+        syncProfileInfo();
+        reCalculateAllTable();
+    }
+
+    function importDataFromFile(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                applyImportedState(data);
+                alert('นำเข้าข้อมูลสำเร็จแล้วครับ ✅');
+            } catch (err) {
+                alert('ไฟล์ไม่ถูกต้องหรือเสียหาย กรุณาตรวจสอบไฟล์อีกครั้งครับ');
+            }
+        };
+        reader.onerror = function () {
+            alert('อ่านไฟล์ไม่สำเร็จ กรุณาลองใหม่อีกครั้งครับ');
+        };
+        reader.readAsText(file, 'UTF-8');
+
+        event.target.value = ''; // เคลียร์ค่า input ไว้ เผื่อผู้ใช้ต้องการเลือกไฟล์เดิมซ้ำอีกครั้ง
+    }
+
+    // ============================================================
+    // 💾 ระบบบันทึกอัตโนมัติ (Auto-save) — กันข้อมูลหายกรณีปิดแอป/หลุดออกจากหน้าโดยไม่ได้ Export
+    // บันทึกลง localStorage ของเบราว์เซอร์อัตโนมัติทุกครั้งที่มีการแก้ไข (หน่วงเวลาเล็กน้อยกันเขียนถี่เกินไป)
+    // เปิดหน้าเว็บใหม่ครั้งถัดไป ระบบจะถามว่าต้องการเรียกคืนข้อมูลที่ค้างไว้หรือไม่
+    // ============================================================
+    const AUTOSAVE_KEY = 'otcalc_autosave_draft';
+    let autosaveDebounceTimer = null;
+
+    function scheduleAutosave() {
+        if (autosaveDebounceTimer) clearTimeout(autosaveDebounceTimer);
+        autosaveDebounceTimer = setTimeout(performAutosave, 900);
+    }
+
+    function performAutosave() {
+        try {
+            const data = collectAllStateForExport();
+            localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(data));
+            showAutosaveIndicator(data.exportedAt);
+        } catch (e) {
+            // บันทึกไม่ได้ (เช่น localStorage ใช้ไม่ได้ในบริบทนี้) ก็ปล่อยผ่าน ไม่กระทบการใช้งานหลักของฟอร์ม
+        }
+    }
+
+    function showAutosaveIndicator(isoTime) {
+        const el = document.getElementById('autosaveIndicator');
+        if (!el) return;
+        try {
+            const d = new Date(isoTime);
+            const timeStr = d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+            el.innerText = `💾 บันทึกอัตโนมัติล่าสุดเมื่อ ${timeStr} น.`;
+        } catch (e) {
+            el.innerText = '💾 บันทึกอัตโนมัติล่าสุดแล้ว';
+        }
+    }
+
+    function checkForAutosaveDraft() {
+        let raw;
+        try {
+            raw = localStorage.getItem(AUTOSAVE_KEY);
+        } catch (e) {
+            return; // อ่าน localStorage ไม่ได้ในบริบทนี้ ข้ามการตรวจสอบไปเลย
+        }
+        if (!raw) return;
+
+        let data;
+        try {
+            data = JSON.parse(raw);
+        } catch (e) {
+            return; // ข้อมูลเสียหาย ปล่อยผ่าน ไม่ต้องเสนอกู้คืน
+        }
+        if (!data || !data.days) return;
+
+        let dateStr = 'ไม่ทราบเวลา';
+        try {
+            dateStr = new Date(data.exportedAt).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
+        } catch (e) { /* เก็บค่า default ไว้ */ }
+
+        const wantsRestore = confirm(
+            `พบข้อมูลที่บันทึกอัตโนมัติไว้ล่าสุดเมื่อ ${dateStr}\n\n` +
+            `ต้องการเรียกคืนข้อมูลนี้กลับมาทำต่อหรือไม่?\n` +
+            `(กด "ยกเลิก" เพื่อเริ่มฟอร์มเปล่าใหม่ตามปกติ)`
+        );
+        if (wantsRestore) {
+            applyImportedState(data);
+            showAutosaveIndicator(data.exportedAt);
+        }
+    }
+
+    // ============================================================
+    // 📅 Google Calendar — Export ทั้งเดือน (.ics) + ส่งรายวัน (quick-add link)
+    // หมายเหตุ: หน้าเว็บนี้เป็นไฟล์ static ไม่มีเซิร์ฟเวอร์/OAuth จึงไม่สามารถเขียนเข้าปฏิทินแบบเงียบๆ ได้โดยตรง
+    // ใช้วิธี .ics (มาตรฐานปฏิทินสากล นำเข้าได้ทุกแอป) และลิงก์ quick-add ของ Google แทน ซึ่งเสถียรกว่าและไม่ต้องขอสิทธิ์ใดๆ
+    // ============================================================
+    function getActualDateForDay(day) {
+        const month = parseInt(document.getElementById('inputMonth').value) || (new Date().getMonth() + 1);
+        const year = parseInt(document.getElementById('inputYearCE').value) || new Date().getFullYear();
+        const date = new Date(year, month - 1, day);
+        // ตรวจสอบว่าวันที่ยัง valid จริงในเดือนนั้น (เช่น 31 กุมภาพันธ์ ไม่มีจริง)
+        if (date.getMonth() !== month - 1) return null;
+        return date;
+    }
+
+    function collectDayTimeRanges(day) {
+        const cells = ['duty-sh', 'duty-ba', 'duty-dk', 'ot-sh', 'ot-ba', 'ot-dk'];
+        let ranges = [];
+        cells.forEach(prefix => {
+            const el = document.getElementById(`${prefix}-${day}`);
+            if (!el || !el.value) return;
+            el.value.split(',').forEach(seg => {
+                const clean = seg.trim();
+                const parts = clean.split('-');
+                if (parts.length !== 2) return;
+                const start = parseFloat(parts[0]);
+                const end = parseFloat(parts[1]);
+                if (isNaN(start) || isNaN(end)) return;
+                ranges.push({ start, end });
+            });
+        });
+        return ranges;
+    }
+
+    function formatCalDateTime(date) {
+        const pad = n => String(n).padStart(2, '0');
+        return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}T${pad(date.getHours())}${pad(date.getMinutes())}00`;
+    }
+
+    // รวมทุกช่วงเวลาของวันนั้นเป็น "1 อีเวนต์" ตั้งแต่เวลาแรกสุดถึงเวลาสุดท้ายสุด (เพื่อความง่ายในการใช้งานจริง)
+    function buildDayEventForCalendar(day) {
+        const ranges = collectDayTimeRanges(day);
+        if (ranges.length === 0) return null;
+
+        const baseDate = getActualDateForDay(day);
+        if (!baseDate) return null;
+
+        const minStart = Math.min(...ranges.map(r => r.start));
+        const maxEndRaw = Math.max(...ranges.map(r => r.end));
+        const maxEnd = maxEndRaw <= minStart ? maxEndRaw + 24 : maxEndRaw; // เผื่อกรณีช่วงเวลาข้ามเที่ยงคืน
+
+        const startDate = new Date(baseDate);
+        startDate.setHours(Math.floor(minStart), Math.round((minStart % 1) * 60), 0, 0);
+
+        const endDate = new Date(baseDate);
+        if (maxEnd >= 24) {
+            endDate.setDate(endDate.getDate() + 1);
+            endDate.setHours(Math.floor(maxEnd - 24), Math.round(((maxEnd - 24) % 1) * 60), 0, 0);
+        } else {
+            endDate.setHours(Math.floor(maxEnd), Math.round((maxEnd % 1) * 60), 0, 0);
+        }
+
+        const worker = (document.getElementById(`worker-name-${day}`).value || document.getElementById('inputName').value || '').trim();
+        const note = document.getElementById(`note-${day}`).value || '';
+        const rangesText = ranges.map(r => `${r.start}-${r.end}`).join(', ');
+
+        const title = `เวร${worker ? ' ' + worker : ''} (${rangesText})`;
+        const details = `ช่วงเวลาที่ลงไว้: ${rangesText}${note ? '\nหมายเหตุ: ' + note : ''}`;
+
+        return { startDate, endDate, title, details };
+    }
+
+    function escapeICSText(text) {
+        return String(text).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+    }
+
+    function addDayToGoogleCalendar(day) {
+        const ev = buildDayEventForCalendar(day);
+        if (!ev) {
+            alert(`วันที่ ${day} ยังไม่มีข้อมูลเวลาให้ส่งเข้าปฏิทินครับ (ตรวจสอบงวดเดือน/ปีในหัวข้อ 1 ด้วยว่าตั้งถูกต้องหรือยัง)`);
+            return;
+        }
+        const datesParam = `${formatCalDateTime(ev.startDate)}/${formatCalDateTime(ev.endDate)}`;
+        const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(ev.title)}&dates=${datesParam}&details=${encodeURIComponent(ev.details)}`;
+        window.open(url, '_blank');
+    }
+
+    function exportMonthToICS() {
+        let hasAny = false;
+        let icsLines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//OTCalc//TH', 'CALSCALE:GREGORIAN'];
+
+        for (let d = 1; d <= 31; d++) {
+            const ev = buildDayEventForCalendar(d);
+            if (!ev) continue;
+            hasAny = true;
+            icsLines.push('BEGIN:VEVENT');
+            icsLines.push(`UID:otcalc-${d}-${Date.now()}-${Math.floor(Math.random() * 100000)}@local`);
+            icsLines.push(`DTSTAMP:${formatCalDateTime(new Date())}`);
+            icsLines.push(`DTSTART:${formatCalDateTime(ev.startDate)}`);
+            icsLines.push(`DTEND:${formatCalDateTime(ev.endDate)}`);
+            icsLines.push(`SUMMARY:${escapeICSText(ev.title)}`);
+            icsLines.push(`DESCRIPTION:${escapeICSText(ev.details)}`);
+            icsLines.push('BEGIN:VALARM');
+            icsLines.push('TRIGGER:-PT30M');
+            icsLines.push('ACTION:DISPLAY');
+            icsLines.push('DESCRIPTION:แจ้งเตือนเวร');
+            icsLines.push('END:VALARM');
+            icsLines.push('END:VEVENT');
+        }
+        icsLines.push('END:VCALENDAR');
+
+        if (!hasAny) {
+            alert('ยังไม่มีข้อมูลเวลาในเดือนนี้เลย ลองกรอกตารางก่อนแล้วค่อย Export ปฏิทินครับ');
+            return;
+        }
+
+        const icsContent = icsLines.join('\r\n');
+        const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+
+        const monthSelect = document.getElementById('inputMonth');
+        const monthText = monthSelect.options[monthSelect.selectedIndex].text;
+        const yearCE = document.getElementById('inputYearCE').value;
+        const nameSlug = (document.getElementById('inputName').value || 'ผู้ใช้').trim().replace(/\s+/g, '_');
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `ตารางเวร_${nameSlug}_${monthText}${yearCE}.ics`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    // ============================================================
+    // 🖨️ ระบบพรีวิว/พิมพ์ ใบขออนุมัติแบบฟอร์มมงกุฎวัฒนะ
+    // ============================================================
+    function escapeHTML(text) {
+        return String(text == null ? '' : text)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // 🔍 ตรวจสอบว่าวันนั้นไม่มีข้อมูลเวลาใดๆ เลยหรือไม่ (ใช้สำหรับแสดงกากบาทในใบพิมพ์)
+    function isDayEmpty(day) {
+        const cellIds = ['duty-sh', 'duty-ba', 'duty-dk', 'ot-sh', 'ot-ba', 'ot-dk'];
+        for (const id of cellIds) {
+            const el = document.getElementById(`${id}-${day}`);
+            if (el && el.value.trim() !== '') return false;
+        }
+        return true;
+    }
+
+    function buildPrintTableBody() {
+        const tbody = document.getElementById('printTableBody');
+        let rows = '';
+        for (let d = 1; d <= 31; d++) {
+            const dutySh = document.getElementById(`duty-sh-${d}`).value;
+            const dutyBa = document.getElementById(`duty-ba-${d}`).value;
+            const dutyDk = document.getElementById(`duty-dk-${d}`).value;
+            const otSh = document.getElementById(`ot-sh-${d}`).value;
+            const otBa = document.getElementById(`ot-ba-${d}`).value;
+            const otDk = document.getElementById(`ot-dk-${d}`).value;
+            const breakDuty = document.getElementById(`break-duty-${d}`).innerText;
+            const sumDuty = document.getElementById(`sum-duty-${d}`).innerText;
+            const breakOt = document.getElementById(`break-ot-${d}`).innerText;
+            const sumOt = document.getElementById(`sum-ot-${d}`).innerText;
+            const worker = document.getElementById(`worker-name-${d}`).value;
+            const note = document.getElementById(`note-${d}`).value;
+            const isNonWorkDay = (dutySh === 'OFF' || dutySh === 'ลาเต็มวัน' || isDayEmpty(d));
+            const workerDisplay = isNonWorkDay ? '' : worker;
+
+            // แสดงกากบาทแทน OFF (หรือวันที่ว่างเปล่าทั้งวัน) ในช่องแรกตามฟอร์มกระดาษต้นฉบับ
+            // ลาเต็มวันแสดงย่อเป็นรหัสเดียวกับที่พิมพ์ไว้ (V=พักร้อน, S=ป่วย, P=กิจ) ให้ตรงธรรมเนียมฟอร์มกระดาษ
+            let dutyShDisplay = dutySh;
+            if (dutySh === 'OFF') {
+                dutyShDisplay = '✗';
+            } else if (dutySh === 'ลาเต็มวัน') {
+                if (note === 'ลาพักร้อน') dutyShDisplay = 'V';
+                else if (note === 'ลาป่วย') dutyShDisplay = 'S';
+                else if (note === 'ลากิจ') dutyShDisplay = 'P';
+                else dutyShDisplay = 'ลา';
+            } else if (isDayEmpty(d)) {
+                dutyShDisplay = '✗';
+            }
+
+            rows += `<tr>
+                <td>${d}</td>
+                <td>${escapeHTML(dutyShDisplay)}</td>
+                <td>${escapeHTML(dutyBa)}</td>
+                <td>${escapeHTML(dutyDk)}</td>
+                <td>${escapeHTML(otSh)}</td>
+                <td>${escapeHTML(otBa)}</td>
+                <td>${escapeHTML(otDk)}</td>
+                <td>${escapeHTML(breakDuty)}</td>
+                <td>${escapeHTML(sumDuty)}</td>
+                <td>${escapeHTML(breakOt)}</td>
+                <td>${escapeHTML(sumOt)}</td>
+                <td>${escapeHTML(workerDisplay)}</td>
+                <td></td>
+                <td>${escapeHTML(note)}</td>
+            </tr>`;
+        }
+        tbody.innerHTML = rows;
+    }
+
+    // คำนวณยอดเงิน OT แยกกลางวัน/ดึก ใหม่อีกครั้งสำหรับพิมพ์ (สูตรเดียวกับ calculateGrandTotals) เพื่อสร้างข้อความสรุปข้อ 2
+    function buildPrintMoneyBreakdown() {
+        const mode = document.getElementById('posSelect').value;
+        let otDayHours = 0, otNightHours = 0;
+        for (let d = 1; d <= 31; d++) {
+            const shP = parseShiftHours(document.getElementById(`ot-sh-${d}`).value);
+            const baP = parseShiftHours(document.getElementById(`ot-ba-${d}`).value);
+            const dkP = parseShiftHours(document.getElementById(`ot-dk-${d}`).value);
+            if (shP) otDayHours += shP.hours;
+            if (baP) otDayHours += baP.hours;
+            if (dkP) otNightHours += dkP.hours;
+        }
+        const totalOtHours = otDayHours + otNightHours;
+
+        if (mode === 'pharmacist' || mode === 'pharmacist_parttime') {
+            const rateSet = rates[mode];
+            const dayMoney = otDayHours * rateSet.otDayRate;
+            const nightMoney = otNightHours * rateSet.otNightRate;
+            const total = dayMoney + nightMoney;
+            return {
+                positionShort: mode === 'pharmacist_parttime' ? 'ภ.พาร์ทไทม์' : 'เภสัชกร',
+                hoursText: String(totalOtHours),
+                amountText: `${dayMoney.toLocaleString()}+${nightMoney.toLocaleString()}(ดึก)=${total.toLocaleString()}`
+            };
+        } else {
+            let nightShiftDaysCount = 0;
+            for (let d = 1; d <= 31; d++) {
+                if (document.getElementById(`duty-dk-${d}`).value || document.getElementById(`ot-dk-${d}`).value) nightShiftDaysCount++;
+            }
+            const otMoney = totalOtHours * rates.assistant.otFlatRate;
+            const nightBonus = nightShiftDaysCount * rates.assistant.nightBonusRate;
+            const total = otMoney + nightBonus;
+            return {
+                positionShort: 'ผู้ช่วยฯ',
+                hoursText: String(totalOtHours),
+                amountText: `${otMoney.toLocaleString()}+${nightBonus.toLocaleString()}(ดึกรายคืน)=${total.toLocaleString()}`
+            };
+        }
+    }
+
+    function populatePrintOnlyForm() {
+        document.getElementById('printMonthYear').innerText = document.getElementById('lblTemplateMonthYear').innerText;
+        document.getElementById('printName').innerText = document.getElementById('inputName').value;
+        document.getElementById('printEmpId').innerText = document.getElementById('inputEmpId').value;
+        document.getElementById('printPosition').innerText = document.getElementById('lblTemplatePosition').value;
+        document.getElementById('printDept').innerText = document.getElementById('inputDept').value;
+        document.getElementById('printDept2').innerText = document.getElementById('inputDept').value;
+        document.getElementById('printSigName').innerText = document.getElementById('inputName').value;
+
+        const mode = document.getElementById('posSelect').value;
+        if (mode === 'assistant') {
+            document.getElementById('printRatePerHour').innerText = rates.assistant.otFlatRate;
+            document.getElementById('printRateAmount').innerText = '-';
+            document.getElementById('printRateHours').innerText = '-';
+        } else {
+            const rateSet = rates[mode];
+            document.getElementById('printRatePerHour').innerText = rateSet.otDayRate;
+            document.getElementById('printRateAmount').innerText = '-';
+            document.getElementById('printRateHours').innerText = '-';
+        }
+
+        buildPrintTableBody();
+
+        document.getElementById('printTotalDutyBreak').innerText = document.getElementById('totalDutyBreak').innerText;
+        document.getElementById('printTotalDutySum').innerText = document.getElementById('totalDutySum').innerText;
+        document.getElementById('printTotalOtBreak').innerText = document.getElementById('totalOtBreak').innerText;
+        document.getElementById('printTotalOtSum').innerText = document.getElementById('totalOtSum').innerText;
+
+        const moneyInfo = buildPrintMoneyBreakdown();
+        document.getElementById('printPositionShort').innerText = moneyInfo.positionShort;
+        document.getElementById('printOtHoursForMoney').innerText = moneyInfo.hoursText;
+        document.getElementById('printAmountForMoney').innerText = moneyInfo.amountText;
+    }
+
+    function setPrintStyle(style) {
+        document.body.classList.toggle('print-text-only', style === 'textonly');
+        // ให้ dropdown ในหัวข้อ 9 กับ radio บนแถบพรีวิว sync ค่ากันเสมอ
+        const select = document.getElementById('printStyleSelect');
+        if (select && select.value !== style) select.value = style;
+        const radios = document.getElementsByName('printStyleChoice');
+        radios.forEach(r => { r.checked = (r.value === style); });
+    }
+
+    function enterPrintPreview() {
+        populatePrintOnlyForm();
+        const currentStyle = document.getElementById('printStyleSelect').value;
+        setPrintStyle(currentStyle);
+        document.body.classList.add('preview-mode');
+        applySavedCalibration();
+        window.scrollTo(0, 0);
+    }
+
+    function exitPrintPreview() {
+        document.body.classList.remove('preview-mode');
+        document.body.classList.remove('calib-mode-active');
+    }
+
+    function doPrint() {
+        populatePrintOnlyForm();
+        applySavedCalibration();
+        window.print();
+    }
+
+    // ============================================================
+    // 🎯 ระบบจัดตำแหน่งอิสระ (Calibration) — ปรับระยะห่างแต่ละช่องจากขอบกระดาษ (มม.)
+    // ค่าที่ปรับจะถูกจำไว้ในเครื่อง (localStorage) ใช้ได้ทุกครั้งที่พิมพ์ครั้งถัดไป
+    // ============================================================
+    const CALIB_KEY = 'otPrintCalibration_v1';
+    const CALIB_FIELD_LABELS = {
+        title: 'หัวกระดาษ/ชื่อบริษัท (ปกติซ่อนไว้ เพราะฟอร์มเปล่ามีอยู่แล้ว)',
+        monthYear: 'งวดประจำเดือน',
+        hdrName: 'ข้าพเจ้า (ชื่อ-สกุล)',
+        hdrEmpId: 'รหัสพนักงาน',
+        hdrPosition: 'ตำแหน่ง',
+        hdrDept: 'แผนก',
+        hdrDept2: 'ฝ่าย',
+        rateInfo: 'บรรทัดอัตราค่าตอบแทน',
+        mainTableZone: 'ตารางเวร 31 วันทั้งกล่อง',
+        moneyLine1: 'ข้อ 1. ค่าอยู่เวร บ่าย-ดึก',
+        moneyLine2: 'ข้อ 2. ค่าอยู่เวรพิเศษ',
+        sigApplicant: 'ลายเซ็นผู้ขออนุมัติ',
+        sigDept: 'ลายเซ็นหัวหน้าแผนก',
+        sigDivision: 'ลายเซ็นหัวหน้าฝ่าย',
+        footNote: 'ข้อความหมายเหตุท้ายฟอร์ม'
+    };
+
+    function loadCalib() {
+        try {
+            return JSON.parse(localStorage.getItem(CALIB_KEY) || '{}');
+        } catch (e) { return {}; }
+    }
+
+    function saveCalib(data) {
+        try { localStorage.setItem(CALIB_KEY, JSON.stringify(data)); } catch (e) {}
+    }
+
+    function getPxPerMm() {
+        const page = document.getElementById('printOnlyForm');
+        const rect = page.getBoundingClientRect();
+        return rect.width / 210; // อ้างอิงความกว้างจริงของหน้า A4 ที่ render บนจอ เทียบกับ 210mm เสมอ ไม่ว่าจะ zoom แค่ไหน
+    }
+
+    // จับตำแหน่งปัจจุบันของทุกช่องที่ยังไม่เคยตั้งค่ามาก่อน (ครั้งแรกที่เข้าโหมดจัดตำแหน่ง)
+    function captureInitialPositions(calibData) {
+        const page = document.getElementById('printOnlyForm');
+        const pageRect = page.getBoundingClientRect();
+        const pxPerMm = getPxPerMm();
+        document.querySelectorAll('#printOnlyForm .calib-field').forEach(el => {
+            const id = el.dataset.calibId;
+            if (calibData[id]) return; // มีค่าที่ผู้ใช้ตั้งไว้แล้ว ไม่ต้องจับใหม่
+            const r = el.getBoundingClientRect();
+            const topMm = (r.top - pageRect.top) / pxPerMm;
+            const leftMm = (r.left - pageRect.left) / pxPerMm;
+            const widthMm = r.width / pxPerMm;
+            calibData[id] = {
+                top: Math.round(topMm * 10) / 10,
+                left: Math.round(leftMm * 10) / 10,
+                right: null,
+                bottom: null,
+                width: Math.round(widthMm * 10) / 10,
+                visible: id !== 'title' // ซ่อนหัวกระดาษเป็นค่าเริ่มต้น เพราะฟอร์มเปล่ามักมีโลโก้/ชื่อบริษัทพิมพ์ไว้อยู่แล้ว
+            };
+        });
+    }
+
+    function applyFieldStyle(el, val) {
+        if (!val) return;
+        el.style.position = 'absolute';
+        el.style.margin = '0';
+        el.style.top = (val.top != null ? val.top : 0) + 'mm';
+        el.style.left = (val.left != null) ? val.left + 'mm' : 'auto';
+        el.style.right = (val.right != null) ? val.right + 'mm' : 'auto';
+        el.style.bottom = (val.bottom != null) ? val.bottom + 'mm' : 'auto';
+        el.style.width = (val.right != null) ? 'auto' : (val.width != null ? val.width + 'mm' : '');
+        el.style.display = (val.visible === false) ? 'none' : '';
+    }
+
+    // เรียกใช้ทุกครั้งก่อนพิมพ์/พรีวิว เพื่อวางตำแหน่งตามค่าที่จำไว้ (ถ้ายังไม่เคยตั้งค่าเลย จะไม่ทำอะไร ใช้ตำแหน่งปกติ)
+    function applySavedCalibration() {
+        const calibData = loadCalib();
+        if (Object.keys(calibData).length === 0) return; // ยังไม่เคยคาลิเบรต ปล่อยให้เป็น layout ปกติ
+        document.querySelectorAll('#printOnlyForm .calib-field').forEach(el => {
+            const val = calibData[el.dataset.calibId];
+            if (val) applyFieldStyle(el, val);
+        });
+        if (calibData._fontSize) {
+            document.getElementById('printOnlyForm').style.setProperty('--print-font-size', calibData._fontSize + 'px');
+        }
+        if (calibData._rowHeight) {
+            document.getElementById('printOnlyForm').style.setProperty('--print-row-h', calibData._rowHeight + 'mm');
+            document.body.classList.add('calib-row-h-active');
+        }
+    }
+
+    function toggleCalibMode() {
+        if (document.body.classList.contains('calib-mode-active')) {
+            document.body.classList.remove('calib-mode-active');
+            document.getElementById('calibToggleBtn').innerText = '🎯 จัดตำแหน่งอิสระ';
+            return;
+        }
+        const calibData = loadCalib();
+        captureInitialPositions(calibData);
+        saveCalib(calibData);
+        document.body.classList.add('calib-mode-active');
+        document.getElementById('calibToggleBtn').innerText = '✅ ปิดแผงจัดตำแหน่ง';
+        document.getElementById('calibFontSize').value = calibData._fontSize || 12;
+        document.getElementById('calibRowHeight').value = calibData._rowHeight || '';
+        document.querySelectorAll('#printOnlyForm .calib-field').forEach(el => {
+            applyFieldStyle(el, calibData[el.dataset.calibId]);
+        });
+        if (calibData._rowHeight) document.body.classList.add('calib-row-h-active');
+        buildCalibPanel(calibData);
+    }
+
+    function buildCalibPanel(calibData) {
+        const list = document.getElementById('calibFieldList');
+        let html = '';
+        document.querySelectorAll('#printOnlyForm .calib-field').forEach(el => {
+            const id = el.dataset.calibId;
+            const v = calibData[id] || { top: 0, left: 0, right: null, bottom: null, visible: true };
+            const label = CALIB_FIELD_LABELS[id] || id;
+            html += `<div class="calib-row" data-row-for="${id}">
+                <div class="calib-row-title">
+                    <label style="display:flex; align-items:center; gap:4px; font-weight:normal;">
+                        <input type="checkbox" ${v.visible !== false ? 'checked' : ''} onchange="calibFieldChange('${id}','visible', this.checked ? true : false)"> ${label}
+                    </label>
+                    <button type="button" class="calib-reset-btn" onclick="calibResetField('${id}')">รีเซ็ต</button>
+                </div>
+                <div class="calib-inputs">
+                    <div><label>บน (top)</label><input type="number" step="0.5" value="${v.top != null ? v.top : ''}" onchange="calibFieldChange('${id}','top', this.value)"></div>
+                    <div><label>ซ้าย (left)</label><input type="number" step="0.5" value="${v.left != null ? v.left : ''}" onchange="calibFieldChange('${id}','left', this.value)"></div>
+                    <div><label>ขวา (right)</label><input type="number" step="0.5" value="${v.right != null ? v.right : ''}" onchange="calibFieldChange('${id}','right', this.value)"></div>
+                    <div><label>ล่าง (bottom)</label><input type="number" step="0.5" value="${v.bottom != null ? v.bottom : ''}" onchange="calibFieldChange('${id}','bottom', this.value)"></div>
+                </div>
+            </div>`;
+        });
+        list.innerHTML = html;
+    }
+
+    function calibFieldChange(id, prop, value) {
+        const calibData = loadCalib();
+        if (!calibData[id]) calibData[id] = { top: 0, left: 0, right: null, bottom: null, visible: true };
+        if (prop === 'visible') {
+            calibData[id].visible = value;
+        } else {
+            calibData[id][prop] = (value === '' || value == null) ? null : parseFloat(value);
+        }
+        saveCalib(calibData);
+        const el = document.querySelector(`#printOnlyForm .calib-field[data-calib-id="${id}"]`);
+        if (el) applyFieldStyle(el, calibData[id]);
+    }
+
+    function calibResetField(id) {
+        const calibData = loadCalib();
+        delete calibData[id];
+        const el = document.querySelector(`#printOnlyForm .calib-field[data-calib-id="${id}"]`);
+        if (el) { el.style.position = ''; el.style.top = ''; el.style.left = ''; el.style.right = ''; el.style.bottom = ''; el.style.display = ''; }
+        captureInitialPositions(calibData);
+        saveCalib(calibData);
+        if (el) applyFieldStyle(el, calibData[id]);
+        buildCalibPanel(calibData);
+    }
+
+    function calibResetAll() {
+        if (!confirm('ล้างค่าตำแหน่งที่ปรับไว้ทั้งหมด แล้วจับตำแหน่งใหม่จากค่าเริ่มต้น?')) return;
+        saveCalib({});
+        document.querySelectorAll('#printOnlyForm .calib-field').forEach(el => {
+            el.style.position = ''; el.style.top = ''; el.style.left = ''; el.style.right = ''; el.style.bottom = ''; el.style.display = '';
+        });
+        document.getElementById('printOnlyForm').style.setProperty('--print-font-size', '12px');
+        document.getElementById('printOnlyForm').style.setProperty('--print-row-h', 'auto');
+        document.body.classList.remove('calib-row-h-active');
+        document.getElementById('calibFontSize').value = 12;
+        document.getElementById('calibRowHeight').value = '';
+        const calibData = {};
+        captureInitialPositions(calibData);
+        saveCalib(calibData);
+        document.querySelectorAll('#printOnlyForm .calib-field').forEach(el => applyFieldStyle(el, calibData[el.dataset.calibId]));
+        buildCalibPanel(calibData);
+    }
+
+    function calibSetFontSize(px) {
+        const calibData = loadCalib();
+        calibData._fontSize = px ? parseFloat(px) : null;
+        saveCalib(calibData);
+        document.getElementById('printOnlyForm').style.setProperty('--print-font-size', (px || 12) + 'px');
+    }
+
+    function calibSetRowHeight(mm) {
+        const calibData = loadCalib();
+        calibData._rowHeight = mm ? parseFloat(mm) : null;
+        saveCalib(calibData);
+        if (mm) {
+            document.getElementById('printOnlyForm').style.setProperty('--print-row-h', mm + 'mm');
+            document.body.classList.add('calib-row-h-active');
+        } else {
+            document.body.classList.remove('calib-row-h-active');
+        }
+    }
+</script>
+
+<!-- 🔽 รายการคำแนะนำอัตโนมัติ (Autocomplete) — ถูกเติมข้อมูลด้วย JS จากประวัติที่เคยพิมพ์ไว้ -->
+<datalist id="timeSuggestions"></datalist>
+<datalist id="noteSuggestions"></datalist>
+<datalist id="workerNameSuggestions"></datalist>
+<datalist id="profileNameSuggestions"></datalist>
+<datalist id="profileEmpIdSuggestions"></datalist>
+<datalist id="profileDeptSuggestions"></datalist>
+
+<!-- 🔽 กล่องแนะนำอัตโนมัติแบบลอย (custom-built แทน native datalist เพื่อความเสถียรบนมือถือ) -->
+<div id="globalAutocompleteBox" class="autocomplete-box"></div>
+
+</body>
+</html>
